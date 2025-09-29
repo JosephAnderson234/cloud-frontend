@@ -1,7 +1,10 @@
+import type { Usuario } from "./usuarios";
+
 export interface RegisterRequest {
-    username: string;
-    email: string;
-    password: string;
+    nombre: string;
+    correo: string;
+    contraseña: string;
+    telefono: string;
 }
 
 export interface LoginRequest {
@@ -10,5 +13,7 @@ export interface LoginRequest {
 }
 
 export interface AuthResponse {
-    token: string;
+    succes: boolean;
+    message: string;
+    usuario: Omit<Usuario, 'contraseña'>;
 }

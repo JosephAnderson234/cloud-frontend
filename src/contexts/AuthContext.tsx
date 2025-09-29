@@ -1,41 +1,40 @@
+import type { Usuario } from "@interfaces/usuarios";
 import { AuthContext } from "./contexts";
 import type { LoginRequest, RegisterRequest } from "@interfaces/authTypes";
-import { login, register } from "@services/auth/auth-req";
+import { login, register } from "@services/auth";
 import { useUserStore } from "@utils/userStorage";
 import { useState } from "react";
 async function loginHandler(
     loginRequest: LoginRequest,
-    setSession: (value: string) => void,
+    setSession: (value: Omit<Usuario, 'contraseña'> | null) => void,
 ) {
-    //esto realiza la llamada, desconmentar cuando se tenga el backend funcionando
-    //const response = await login(loginRequest);
-    //setSession(response.data.token);
-    setSession("mocked-token"); // Mocked token for testing purposes
+    const response = await login(loginRequest);
+    setSession(response.usuario); 
 }
 
 async function signupHandler(
     signupRequest: RegisterRequest,
-    setSession: (value: string) => void,
+    setSession: (value: Omit<Usuario, 'contraseña'> | null) => void,
 ) {
     const response = await register(signupRequest);
-    setSession(response.token);
+    setSession(response.usuario);
 }
 
 const AuthProvider = (props: { children: React.ReactNode }) => {
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const token = useUserStore((state) => state.token);
-    const setToken = useUserStore((state) => state.setToken);
+    const usuario = useUserStore((state) => state.usuario);
+    const setUsuario = useUserStore((state) => state.setUsuario);
     
     return (
         <AuthContext.Provider
             value={{
-                register: (signupRequest) => signupHandler(signupRequest, setToken),
-                login: (loginRequest) => loginHandler(loginRequest, setToken),
+                register: (signupRequest) => signupHandler(signupRequest, setUsuario),
+                login: (loginRequest) => loginHandler(loginRequest, setUsuario),
                 logout: () => {
                     setIsLoggingOut(true);
-                    setToken(null);
+                    setUsuario(null);
                 },
-                session: token,
+                session: usuario,
                 isLoggingOut,
                 setIsLoggingOut,
             }}

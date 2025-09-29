@@ -1,16 +1,17 @@
+import type { Usuario } from '@interfaces/usuarios';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 type UserStore = {
-    token: string | null;
-    setToken: (token: string | null) => void;
+    usuario: Omit<Usuario, 'contraseña'> | null;
+    setUsuario: (usuario: Omit<Usuario, 'contraseña'> | null) => void;
 };
 
 export const useUserStore = create<UserStore>()(
     persist(
         (set) => ({
-            token: null,
-            setToken: (token) => set({ token }),
+            usuario: null,
+            setUsuario: (usuario) => set({ usuario }),
         }),
         {
             name: 'user-auth',
