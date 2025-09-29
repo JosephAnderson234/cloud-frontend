@@ -1,46 +1,41 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "src/App";
 import { ProtectedRoute } from "./ProtectedRoute";
-import Profile from "@pages/Profile";
-import Home from "@pages/Home";
+import Usuarios from "@pages/Usuarios";
 
-export const router = createBrowserRouter(
-    [{
-        path: "/",
-        element: <App />,
-        children: [
-            {
-				path: "/",
-                element:<Home/>,
-				children: [],
-			},
-            {
+export const router = createBrowserRouter([
+	{
+		path: "/",
+		element: <App />,
+		children: [
+			{
 				path: "auth",
 				children: [
-                    {
-                        path: "login",
-                        element: <div>Login Page</div>
-                    },
-                    {
-                        path: "register",
-                        element: <div>Register Page</div>
-                    }
-                ],
+					{
+						path: "login", 
+						element: <div > Login Page</div>
+					}, 
+					{
+						path: "register", 
+						element: <div > Register Page</div>
+					}
+				],
 			},
-            {
-                path: "profile",
-                element: <ProtectedRoute to="/"/>,
-                children: [
-                    {
-                        path: "",
-                        element: <Profile />
-                    }
-                ]
-            },
-            {
-                path: "*",
-                element: <div>Not Found</div>
-            }
-        ]
-    }]
-)
+			{
+				path: "/",
+				element: <ProtectedRoute to="/" />,
+				children: [
+				{
+					path:"users",
+					element:<Usuarios />
+				}, 
+				{}, {}],
+
+			},
+			{
+				path: "*",
+				element: <div>Not Found</div>,
+			},
+		],
+	},
+]);

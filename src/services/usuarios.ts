@@ -2,6 +2,14 @@ import type { Usuario, Direccion } from "@interfaces/usuarios";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+export const getAllUsers = async () => {
+    const response = await fetch(`${API_URL}/usuarios`);
+    if (!response.ok) {
+        throw new Error('Error fetching users');
+    }
+    return response.json() as Promise<Usuario[]>;
+}
+
 export const getUserById = async (id: number) => {
     const response = await fetch(`${API_URL}/usuarios/${id}`);
     if (!response.ok) {

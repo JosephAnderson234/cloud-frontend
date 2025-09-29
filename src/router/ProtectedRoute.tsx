@@ -5,11 +5,11 @@ export function ProtectedRoute({to}:{ to: string }) {
 	const authContext = useAuth();
 	const location = useLocation();
 
-	if (!authContext.session && authContext.isLoggingOut) {
+	if (!authContext.session?.id_usuario && authContext.isLoggingOut) {
 		return <Navigate to={to} replace />;
 	}
 
-	if (!authContext.session && !authContext.isLoggingOut)
+	if (!authContext.session?.id_usuario && !authContext.isLoggingOut)
 		return <Navigate to={`/auth/login?from=${location.pathname}`} replace />;
 
 	return <Outlet />;
