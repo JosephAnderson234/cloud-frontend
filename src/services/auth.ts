@@ -3,7 +3,7 @@ import type { LoginRequest, RegisterRequest, AuthResponse } from "@interfaces/au
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const login = async (credentials: LoginRequest) => {
-    const response = await fetch(`${API_URL}/auth/login`, {
+    const response = await fetch(`${API_URL}/login`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -17,7 +17,7 @@ export const login = async (credentials: LoginRequest) => {
 }
 
 export const register = async (userData: RegisterRequest) => {
-    const response = await fetch(`${API_URL}/auth/register`, {
+    const response = await fetch(`${API_URL}/register`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

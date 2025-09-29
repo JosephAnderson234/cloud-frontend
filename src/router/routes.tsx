@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "src/App";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Usuarios from "@pages/Usuarios";
+import { Login, Register } from "@pages/auth";
 
 export const router = createBrowserRouter([
 	{
@@ -13,11 +14,11 @@ export const router = createBrowserRouter([
 				children: [
 					{
 						path: "login", 
-						element: <div > Login Page</div>
+						element: <Login />
 					}, 
 					{
 						path: "register", 
-						element: <div > Register Page</div>
+						element: <Register />
 					}
 				],
 			},
@@ -26,10 +27,13 @@ export const router = createBrowserRouter([
 				element: <ProtectedRoute to="/" />,
 				children: [
 				{
+					index: true,
+					element: <Usuarios />
+				},
+				{
 					path:"users",
 					element:<Usuarios />
-				}, 
-				{}, {}],
+				}],
 
 			},
 			{

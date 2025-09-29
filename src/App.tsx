@@ -1,11 +1,16 @@
-import { Outlet } from "react-router";
-
+import { Outlet, useLocation } from "react-router-dom";
+import NavBar from "@components/NavBar";
 
 function App() {
+  const location = useLocation();
+  
+  // No mostrar NavBar en páginas de autenticación
+  const isAuthPage = location.pathname.startsWith('/auth');
 
   return (
     <>
-    <Outlet />
+      {!isAuthPage && <NavBar />}
+      <Outlet />
     </>
   )
 }
