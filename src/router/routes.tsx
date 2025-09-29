@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import App from "src/App";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Usuarios from "@pages/Usuarios";
+import Pedidos from "@pages/Pedidos";
 import { Login, Register } from "@pages/auth";
 
 export const router = createBrowserRouter([
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
 				{
 					path:"users",
 					element:<Usuarios />
+				},
+				{
+					path:"orders",
+					element:<Pedidos />
 				}],
 
 			},

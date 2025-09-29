@@ -33,7 +33,7 @@ const navigation: NavigationItem[] = [
             </svg>
         ),
         requiresAuth: true
-    }
+    },
 ];
 
 export default function NavBar() {
