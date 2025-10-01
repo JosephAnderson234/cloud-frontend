@@ -1,12 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Pedido, HistorialPedido } from '@interfaces/pedidos';
 import type { PedidoFormData } from '@interfaces/pedidosComponents';
 import * as pedidosService from '@services/pedidos';
+import useAuth from './useAuthContext';
 
 export const usePedidos = () => {
     const [pedidos, setPedidos] = useState<Pedido[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const {session} = useAuth();
 
     const fetchPedidosByUser = async (userId: number) => {
         setLoading(true);
@@ -72,6 +74,12 @@ export const usePedidos = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        if (session) {
+            fetchPedidosByUser(session.id_usuario);
+        }
+    }, [session]);
 
     return {
         pedidos,

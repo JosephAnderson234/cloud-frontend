@@ -41,4 +41,7 @@ export interface ConfirmModalProps {
     title: string;
     message: string;
     loading: boolean;
+    confirmText?: string;
+    cancelText?: string;
+    variant?: 'danger' | 'warning' | 'info';
 }

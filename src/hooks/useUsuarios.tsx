@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import type { Usuario, Direccion } from '@interfaces/usuarios';
 import type { UserFormData, DirectionFormData } from '@interfaces/usuariosComponents';
 import * as usuariosService from '@services/usuarios';
@@ -8,17 +8,7 @@ export const useUsuarios = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchUsuarios = async () => {
-        setLoading(true);
-        try {
-            const allUsers = await usuariosService.getAllUsers();
-            setUsuarios(allUsers);
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error fetching users');
-        } finally {
-            setLoading(false);
-        }
-    };
+    
 
     const createUsuario = async (data: UserFormData): Promise<Usuario> => {
         setLoading(true);
@@ -73,9 +63,6 @@ export const useUsuarios = () => {
         }
     };
 
-    useEffect(() => {
-        fetchUsuarios();
-    }, []);
 
     return {
         usuarios,
@@ -85,7 +72,6 @@ export const useUsuarios = () => {
         updateUsuario,
         deleteUsuario,
         getUsuario,
-        refetch: fetchUsuarios,
         clearError: () => setError(null)
     };
 };

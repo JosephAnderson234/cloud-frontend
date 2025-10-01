@@ -4,10 +4,10 @@ import type { PedidoFormData } from '@interfaces/pedidosComponents';
 import { usePedidos } from '@hooks/usePedidos';
 import { useUsuarios } from '@hooks/useUsuarios';
 import Notification from '@components/Notification';
+import ConfirmModal from '@components/ConfirmModal';
 import PedidoTable from '@components/pedidos/PedidoTable';
 import PedidoForm from '@components/pedidos/PedidoForm';
 import HistoryModal from '@components/pedidos/HistoryModal';
-import ConfirmModal from '@components/usuarios/ConfirmModal';
 
 export default function Pedidos() {
     const { pedidos, loading, error, createPedido, updatePedido, deletePedido, clearError } = usePedidos();
@@ -200,6 +200,9 @@ export default function Pedidos() {
                 title="Eliminar Pedido"
                 message={`¿Estás seguro de que deseas eliminar el pedido #${deleteConfirm.pedido?._id.slice(-8)}? Esta acción eliminará también todo su historial asociado y no se puede deshacer.`}
                 loading={loading}
+                confirmText="Eliminar"
+                cancelText="Cancelar"
+                variant="danger"
             />
 
             {/* Notificaciones */}

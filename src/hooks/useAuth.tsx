@@ -14,7 +14,7 @@ export const useAuth = () => {
         setError(null);
         try {
             await contextLogin(credentials);
-            navigate('/users', { replace: true });
+            navigate('/', { replace: true });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Error al iniciar sesión';
             setError(errorMessage);
@@ -29,7 +29,7 @@ export const useAuth = () => {
         setError(null);
         try {
             await contextRegister(userData);
-            navigate('/users', { replace: true });
+            navigate('/', { replace: true });
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Error al registrar usuario';
             setError(errorMessage);
@@ -41,7 +41,6 @@ export const useAuth = () => {
 
     const logout = () => {
         contextLogout();
-        navigate('/auth/login', { replace: true });
     };
 
     return {

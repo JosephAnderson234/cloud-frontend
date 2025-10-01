@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import type { PedidoFormProps, PedidoFormData } from '@interfaces/pedidosComponents';
 import type { ProductoPedido } from '@interfaces/pedidos';
-import { useUsuarios } from '@hooks/useUsuarios';
 import { getAllProducts } from '@services/productos';
 import type { Producto } from '@interfaces/productos';
-import UserSelector from './UserSelector';
 import ProductSelector from './ProductSelector';
 import OrderSummary from './OrderSummary';
+import useAuth from '@hooks/useAuthContext';
 
 export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: PedidoFormProps) {
-    const { usuarios, loading: usuariosLoading } = useUsuarios();
     const [productos, setProductos] = useState<Producto[]>([]);
     const [productosLoading, setProductosLoading] = useState(false);
     
+    const user = useAuth();
+
     const [formData, setFormData] = useState<PedidoFormData>({
-        id_usuario: 0,
+        id_usuario: user.session?.id_usuario || 0,
         fecha_pedido: new Date().toISOString(),
         estado: 'pendiente',
         total: 0,
@@ -87,12 +87,6 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
         }
     };
 
-    const handleUserChange = (userId: number) => {
-        setFormData(prev => ({ ...prev, id_usuario: userId }));
-        if (errors.id_usuario) {
-            setErrors(prev => ({ ...prev, id_usuario: undefined }));
-        }
-    };
 
     const handleProductsChange = (productos: ProductoPedido[]) => {
         setFormData(prev => ({ ...prev, productos }));
@@ -122,15 +116,12 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
                     <div className="lg:col-span-2 space-y-6">
                         {/* Selector de Usuario */}
                         <div>
-                            <UserSelector
-                                usuarios={usuarios}
-                                selectedUserId={formData.id_usuario}
-                                onUserChange={handleUserChange}
-                                loading={usuariosLoading}
-                            />
-                            {errors.id_usuario && (
-                                <p className="mt-2 text-sm text-red-600">{errors.id_usuario}</p>
-                            )}
+                            {/*show the current user */}
+                            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p className="text-sm text-gray-700">
+                                    Usuario: <span className="font-medium">{user.session?.nombre} ({user.session?.correo})</span>
+                                </p>
+                            </div>
                         </div>
 
                         {/* Estado del Pedido (solo en edición) */}

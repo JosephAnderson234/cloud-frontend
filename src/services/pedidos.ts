@@ -3,7 +3,7 @@ import type { Pedido, HistorialPedido } from "@interfaces/pedidos";
 const API_URL = import.meta.env.VITE_API_URL;
 
 export const getOrdersByUserId = async (id_usuario: number) => {
-    const response = await fetch(`${API_URL}/pedidos/${id_usuario}`);
+    const response = await fetch(`${API_URL}/pedidos/user/${id_usuario}`);
     if (!response.ok) {
         throw new Error('Error fetching user orders');
     }
