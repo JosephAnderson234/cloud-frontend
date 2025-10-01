@@ -1,9 +1,10 @@
-import type { Producto, Categoria } from "@interfaces/productos";
+import type { Producto, Categoria, ProductoFormData, CategoriaFormData, ProductoWithCategory } from "@interfaces/productos";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
+// ===== PRODUCTOS =====
 
-export const getAllProducts = async () => {
+export const getAllProducts = async (): Promise<Producto[]> => {
     const response = await fetch(`${API_URL}/productos`);
     if (!response.ok) {
         throw new Error('Error fetching products');
@@ -11,7 +12,23 @@ export const getAllProducts = async () => {
     return response.json() as Promise<Producto[]>;
 }
 
-export const getProductById = async (id: number) => {
+export const getAllProductsWithCategories = async (): Promise<ProductoWithCategory[]> => {
+    try {
+        const [productos, categorias] = await Promise.all([
+            getAllProducts(),
+            getAllCategories()
+        ]);
+        
+        return productos.map(producto => ({
+            ...producto,
+            categoria: categorias.find(cat => cat.id_categoria === producto.categoria_id)
+        }));
+    } catch {
+        throw new Error('Error fetching products with categories');
+    }
+}
+
+export const getProductById = async (id: number): Promise<Producto> => {
     const response = await fetch(`${API_URL}/productos/${id}`);
     if (!response.ok) {
         throw new Error('Error fetching product');
@@ -19,7 +36,7 @@ export const getProductById = async (id: number) => {
     return response.json() as Promise<Producto>;
 }
 
-export const createProduct = async (producto: Omit<Producto, 'id_producto'>) => {
+export const createProduct = async (producto: ProductoFormData): Promise<Producto> => {
     const response = await fetch(`${API_URL}/productos`, {
         method: 'POST',
         headers: {
@@ -33,7 +50,7 @@ export const createProduct = async (producto: Omit<Producto, 'id_producto'>) => 
     return response.json() as Promise<Producto>;
 }
 
-export const updateProduct = async (id: number, producto: Partial<Omit<Producto, 'id_producto'>>) => {
+export const updateProduct = async (id: number, producto: Partial<ProductoFormData>): Promise<Producto> => {
     const response = await fetch(`${API_URL}/productos/${id}`, {
         method: 'PUT',
         headers: {
@@ -47,7 +64,7 @@ export const updateProduct = async (id: number, producto: Partial<Omit<Producto,
     return response.json() as Promise<Producto>;
 }
 
-export const deleteProduct = async (id: number) => {
+export const deleteProduct = async (id: number): Promise<void> => {
     const response = await fetch(`${API_URL}/productos/${id}`, {
         method: 'DELETE'
     });
@@ -57,9 +74,17 @@ export const deleteProduct = async (id: number) => {
     return response.json();
 }
 
+export const getProductsByCategory = async (categoriaId: number): Promise<Producto[]> => {
+    const response = await fetch(`${API_URL}/productos?categoria_id=${categoriaId}`);
+    if (!response.ok) {
+        throw new Error('Error fetching products by category');
+    }
+    return response.json() as Promise<Producto[]>;
+}
+
 // ===== CATEGORÍAS =====
 
-export const getAllCategories = async () => {
+export const getAllCategories = async (): Promise<Categoria[]> => {
     const response = await fetch(`${API_URL}/categorias`);
     if (!response.ok) {
         throw new Error('Error fetching categories');
@@ -67,7 +92,7 @@ export const getAllCategories = async () => {
     return response.json() as Promise<Categoria[]>;
 }
 
-export const getCategoryById = async (id: number) => {
+export const getCategoryById = async (id: number): Promise<Categoria> => {
     const response = await fetch(`${API_URL}/categorias/${id}`);
     if (!response.ok) {
         throw new Error('Error fetching category');
@@ -75,7 +100,7 @@ export const getCategoryById = async (id: number) => {
     return response.json() as Promise<Categoria>;
 }
 
-export const createCategory = async (categoria: Omit<Categoria, 'id_categoria'>) => {
+export const createCategory = async (categoria: CategoriaFormData): Promise<Categoria> => {
     const response = await fetch(`${API_URL}/categorias`, {
         method: 'POST',
         headers: {
@@ -89,7 +114,7 @@ export const createCategory = async (categoria: Omit<Categoria, 'id_categoria'>)
     return response.json() as Promise<Categoria>;
 }
 
-export const updateCategory = async (id: number, categoria: Partial<Omit<Categoria, 'id_categoria'>>) => {
+export const updateCategory = async (id: number, categoria: Partial<CategoriaFormData>): Promise<Categoria> => {
     const response = await fetch(`${API_URL}/categorias/${id}`, {
         method: 'PUT',
         headers: {
@@ -103,7 +128,7 @@ export const updateCategory = async (id: number, categoria: Partial<Omit<Categor
     return response.json() as Promise<Categoria>;
 }
 
-export const deleteCategory = async (id: number) => {
+export const deleteCategory = async (id: number): Promise<void> => {
     const response = await fetch(`${API_URL}/categorias/${id}`, {
         method: 'DELETE'
     });
