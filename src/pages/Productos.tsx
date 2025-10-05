@@ -259,13 +259,8 @@ export default function Productos() {
 
                     {/* Filtros */}
                     <ProductoFilters
-                        categorias={categories.categories}
-                        selectedCategoria={filters.selectedCategoria}
-                        onCategoriaChange={(categoriaId) => setFilters(prev => ({ ...prev, selectedCategoria: categoriaId }))}
                         searchTerm={filters.searchTerm}
                         onSearchChange={(term) => setFilters(prev => ({ ...prev, searchTerm: term }))}
-                        priceRange={filters.priceRange}
-                        onPriceRangeChange={(range) => setFilters(prev => ({ ...prev, priceRange: range }))}
                         onReset={() => setFilters({ searchTerm: '', selectedCategoria: null, priceRange: { min: 0, max: 0 } })}
                     />
 
@@ -289,7 +284,7 @@ export default function Productos() {
                             />
                             
                             {/* Paginación */}
-                            {products.totalElements > 0 && (
+                            {products.totalElements > 0 && filters.searchTerm === '' && (
                                 <SimplePagination
                                     currentPage={products.currentPage}
                                     totalPages={products.totalPages}
@@ -324,7 +319,7 @@ export default function Productos() {
                             />
                             
                             {/* Paginación */}
-                            {categories.totalElements > 0 && (
+                            {categories.totalElements > 0 && filters.searchTerm === '' && (
                                 <SimplePagination
                                     currentPage={categories.currentPage}
                                     totalPages={categories.totalPages}

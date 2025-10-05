@@ -51,13 +51,8 @@ export interface CategoriaModalProps {
 
 // Filter Props
 export interface ProductoFiltersProps {
-    categorias: CategoriaDTO[];
-    selectedCategoria: number | null;
-    onCategoriaChange: (categoriaId: number | null) => void;
     searchTerm: string;
     onSearchChange: (term: string) => void;
-    priceRange: { min: number; max: number };
-    onPriceRangeChange: (range: { min: number; max: number }) => void;
     onReset: () => void;
 }
 

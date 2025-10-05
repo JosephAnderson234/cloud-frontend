@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import useAuth from '@hooks/useAuthContext';
 import { useUserAddresses } from '@hooks/useUserAddresses';
 import AddressSelector from './AddressSelector';
-import type { CartQuoteFormProps, CartQuoteFormData } from '@interfaces/deliveryComponents';
+import CartProductSelector from './CartProductSelector';
+import type { CartQuoteFormProps, CartQuoteFormData, CartItem } from '@interfaces/deliveryComponents';
 
 const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
   const { session } = useAuth();
@@ -11,7 +12,7 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
   const [formData, setFormData] = useState<CartQuoteFormData>({
     id_usuario: session?.id_usuario || 0,
     id_direccion: 0,
-    items: [{ id_producto: 1, cantidad: 1 }]
+    items: []
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -37,26 +38,10 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
     }
   }, [addresses, formData.id_direccion]);
 
-  const addItem = () => {
+  const handleItemsChange = (items: CartItem[]) => {
     setFormData(prev => ({
       ...prev,
-      items: [...prev.items, { id_producto: 1, cantidad: 1 }]
-    }));
-  };
-
-  const removeItem = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.filter((_, i) => i !== index)
-    }));
-  };
-
-  const updateItem = (index: number, field: 'id_producto' | 'cantidad', value: number) => {
-    setFormData(prev => ({
-      ...prev,
-      items: prev.items.map((item, i) => 
-        i === index ? { ...item, [field]: value } : item
-      )
+      items
     }));
   };
 
@@ -83,17 +68,8 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
     }
     
     if (formData.items.length === 0) {
-      newErrors.items = 'Debe agregar al menos un producto';
+      newErrors.items = 'Debe agregar al menos un producto al carrito';
     }
-    
-    formData.items.forEach((item, index) => {
-      if (item.id_producto <= 0) {
-        newErrors[`item_${index}_producto`] = 'El ID del producto debe ser mayor a 0';
-      }
-      if (item.cantidad <= 0) {
-        newErrors[`item_${index}_cantidad`] = 'La cantidad debe ser mayor a 0';
-      }
-    });
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -162,79 +138,16 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
           </div>
         )}
 
+        {/* Selector de productos */}
         <div>
-          <div className="flex justify-between items-center mb-3">
-            <label className="block text-sm font-medium text-gray-700">
-              Productos del Carrito *
-            </label>
-            <button
-              type="button"
-              onClick={addItem}
-              disabled={isLoading}
-              className="px-3 py-1 bg-blue-500 text-white text-sm rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              + Agregar Producto
-            </button>
-          </div>
-          
+          <CartProductSelector
+            selectedItems={formData.items}
+            onItemsChange={handleItemsChange}
+            isLoading={isLoading}
+          />
           {errors.items && (
-            <p className="text-red-500 text-xs mb-2">{errors.items}</p>
+            <p className="text-red-500 text-xs mt-1">{errors.items}</p>
           )}
-          
-          <div className="space-y-2">
-            {formData.items.map((item, index) => (
-              <div key={index} className="flex gap-3 items-start p-3 border rounded bg-gray-50">
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-600 mb-1">
-                    ID Producto
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.id_producto}
-                    onChange={(e) => updateItem(index, 'id_producto', parseInt(e.target.value) || 0)}
-                    className={`w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                      errors[`item_${index}_producto`] ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    disabled={isLoading}
-                  />
-                  {errors[`item_${index}_producto`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`item_${index}_producto`]}</p>
-                  )}
-                </div>
-                
-                <div className="flex-1">
-                  <label className="block text-xs text-gray-600 mb-1">
-                    Cantidad
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    value={item.cantidad}
-                    onChange={(e) => updateItem(index, 'cantidad', parseInt(e.target.value) || 0)}
-                    className={`w-full px-2 py-1 border rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 ${
-                      errors[`item_${index}_cantidad`] ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    disabled={isLoading}
-                  />
-                  {errors[`item_${index}_cantidad`] && (
-                    <p className="text-red-500 text-xs mt-1">{errors[`item_${index}_cantidad`]}</p>
-                  )}
-                </div>
-                
-                {formData.items.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeItem(index)}
-                    disabled={isLoading}
-                    className="mt-5 px-2 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 disabled:opacity-50"
-                  >
-                    ✕
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
         </div>
 
         <button

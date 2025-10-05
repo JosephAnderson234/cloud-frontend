@@ -2,6 +2,13 @@ import type { CartQuoteResponse, OrderDetailsResponse, CartQuoteRequest, OrderDe
 import type { DireccionResponse } from './usuarios';
 import type { PedidoSimple } from './pedidos';
 
+// Item simplificado para el carrito
+export interface CartItem {
+  id_producto: number;
+  name?: string;
+  cantidad: number;
+}
+
 // Componentes para el delivery
 export interface CartQuoteFormProps {
   onQuoteGenerated: (request: CartQuoteRequest) => void;
@@ -39,6 +46,13 @@ export interface OrderSelectorProps {
   orders: PedidoSimple[];
   selectedOrderId: string;
   onOrderSelect: (orderId: string) => void;
+  isLoading?: boolean;
+}
+
+// Selector de productos para carrito
+export interface CartProductSelectorProps {
+  selectedItems: CartItem[];
+  onItemsChange: (items: CartItem[]) => void;
   isLoading?: boolean;
 }
 

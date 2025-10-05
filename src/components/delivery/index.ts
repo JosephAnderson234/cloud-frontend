@@ -5,3 +5,4 @@ export { default as OrderDetailsResults } from './OrderDetailsResults';
 export { default as DeliveryStats } from './DeliveryStats';
 export { default as AddressSelector } from './AddressSelector';
 export { default as OrderSelector } from './OrderSelector';
+export { default as CartProductSelector } from './CartProductSelector';
