@@ -1,6 +1,6 @@
-import type { Usuario, Direccion } from "@interfaces/usuarios";
+import type { Usuario, Direccion, DireccionResponse } from "@interfaces/usuarios";
 
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = import.meta.env.VITE_API_URL + ":8001";
 
 
 export const getUserById = async (id: number) => {
@@ -54,7 +54,7 @@ export const getUserDirections = async (id_usuario: number) => {
     if (!response.ok) {
         throw new Error('Error fetching user directions');
     }
-    return response.json() as Promise<Direccion[]>;
+    return response.json() as Promise<DireccionResponse[]>;
 }
 
 

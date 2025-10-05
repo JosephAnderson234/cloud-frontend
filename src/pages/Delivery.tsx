@@ -182,19 +182,6 @@ const Delivery = () => {
           </div>
         )}
 
-        {/* Footer */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <div className="text-center text-sm text-gray-500">
-            <p className="mb-2">
-              <strong>Orquestador Delivery</strong> - Integración de Microservicios
-            </p>
-            <div className="flex justify-center space-x-6 text-xs">
-              <span>🔹 MS1: Usuarios y Direcciones</span>
-              <span>🔹 MS2: Productos y Categorías</span>
-              <span>🔹 MS3: Pedidos y Órdenes</span>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );

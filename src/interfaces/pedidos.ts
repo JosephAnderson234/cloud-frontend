@@ -13,6 +13,14 @@ export interface Pedido {
     productos: ProductoPedido[];
 }
 
+// Interfaz simplificada para el selector
+export interface PedidoSimple {
+    _id: string;
+    fecha_pedido: string;
+    estado: 'pendiente' | 'entregado' | 'cancelado';
+    total: number;
+}
+
 export interface HistorialPedido {
     _id: string;
     id_pedido: string;

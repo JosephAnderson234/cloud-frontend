@@ -15,3 +15,19 @@ export interface Direccion {
     ciudad: string;
     codigo_postal: string;
 }
+
+export interface DireccionResponse {
+    id_direccion: number;
+    id_usuario: number;
+    direccion: string;
+    ciudad: string;
+    codigo_postal: string;
+}
+
+export interface DireccionResponse {
+    id_direccion: number;
+    id_usuario: number;
+    direccion: string;
+    ciudad: string;
+    codigo_postal: string;
+}

@@ -1,14 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import useAuth from '@hooks/useAuthContext';
+import { useUserAddresses } from '@hooks/useUserAddresses';
+import AddressSelector from './AddressSelector';
 import type { CartQuoteFormProps, CartQuoteFormData } from '@interfaces/deliveryComponents';
 
 const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
+  const { session } = useAuth();
+  const { addresses, isLoading: addressesLoading } = useUserAddresses(session?.id_usuario || null);
+  
   const [formData, setFormData] = useState<CartQuoteFormData>({
-    id_usuario: 1,
-    id_direccion: 1,
+    id_usuario: session?.id_usuario || 0,
+    id_direccion: 0,
     items: [{ id_producto: 1, cantidad: 1 }]
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  // Actualizar el ID del usuario cuando cambie la sesión
+  useEffect(() => {
+    if (session?.id_usuario) {
+      setFormData(prev => ({
+        ...prev,
+        id_usuario: session.id_usuario,
+        id_direccion: 0 // Reset address selection when user changes
+      }));
+    }
+  }, [session?.id_usuario]);
+
+  // Auto-seleccionar la primera dirección si solo hay una
+  useEffect(() => {
+    if (addresses.length === 1 && formData.id_direccion === 0) {
+      setFormData(prev => ({
+        ...prev,
+        id_direccion: addresses[0].id_direccion
+      }));
+    }
+  }, [addresses, formData.id_direccion]);
 
   const addItem = () => {
     setFormData(prev => ({
@@ -33,15 +60,26 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
     }));
   };
 
+  const handleAddressSelect = (addressId: number) => {
+    setFormData(prev => ({
+      ...prev,
+      id_direccion: addressId
+    }));
+  };
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
     
+    if (!session) {
+      newErrors.session = 'Debes estar loggeado para generar una cotización';
+    }
+    
     if (formData.id_usuario <= 0) {
-      newErrors.id_usuario = 'El ID de usuario debe ser mayor a 0';
+      newErrors.id_usuario = 'Usuario no válido';
     }
     
     if (formData.id_direccion <= 0) {
-      newErrors.id_direccion = 'El ID de dirección debe ser mayor a 0';
+      newErrors.id_direccion = 'Debes seleccionar una dirección de entrega';
     }
     
     if (formData.items.length === 0) {
@@ -71,6 +109,22 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
     await onQuoteGenerated(formData);
   };
 
+  if (!session) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold mb-4 text-gray-800">
+            Cotización de Carrito
+          </h3>
+          <p className="text-gray-600 mb-4">
+            Debes iniciar sesión para generar una cotización
+          </p>
+          <div className="text-4xl mb-4">🔒</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold mb-4 text-gray-800">
@@ -78,51 +132,35 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
       </h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ID Usuario *
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={formData.id_usuario}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                id_usuario: parseInt(e.target.value) || 0 
-              }))}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.id_usuario ? 'border-red-500' : 'border-gray-300'
-              }`}
-              disabled={isLoading}
-            />
-            {errors.id_usuario && (
-              <p className="text-red-500 text-xs mt-1">{errors.id_usuario}</p>
-            )}
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              ID Dirección
-            </label>
-            <input
-              type="number"
-              min="1"
-              value={formData.id_direccion}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                id_direccion: parseInt(e.target.value) || 0 
-              }))}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                errors.id_direccion ? 'border-red-500' : 'border-gray-300'
-              }`}
-              disabled={isLoading}
-            />
-            {errors.id_direccion && (
-              <p className="text-red-500 text-xs mt-1">{errors.id_direccion}</p>
-            )}
+        {/* Usuario loggeado (solo lectura) */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Usuario
+          </label>
+          <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50 text-gray-700">
+            {session.nombre} (ID: {session.id_usuario})
           </div>
         </div>
+
+        {/* Selector de dirección */}
+        <div>
+          <AddressSelector
+            addresses={addresses}
+            selectedAddressId={formData.id_direccion}
+            onAddressSelect={handleAddressSelect}
+            isLoading={addressesLoading || isLoading}
+          />
+          {errors.id_direccion && (
+            <p className="text-red-500 text-xs mt-1">{errors.id_direccion}</p>
+          )}
+        </div>
+
+        {/* Error de sesión */}
+        {errors.session && (
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+            <p className="text-red-500 text-sm">{errors.session}</p>
+          </div>
+        )}
 
         <div>
           <div className="flex justify-between items-center mb-3">
@@ -201,11 +239,17 @@ const CartQuoteForm = ({ onQuoteGenerated, isLoading }: CartQuoteFormProps) => {
 
         <button
           type="submit"
-          disabled={isLoading}
+          disabled={isLoading || addressesLoading || addresses.length === 0 || formData.id_direccion === 0}
           className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
         >
           {isLoading ? 'Generando Cotización...' : 'Generar Cotización'}
         </button>
+        
+        {addresses.length === 0 && !addressesLoading && (
+          <p className="text-sm text-amber-600 text-center">
+            ⚠️ Necesitas al menos una dirección registrada para generar cotizaciones
+          </p>
+        )}
       </form>
     </div>
   );

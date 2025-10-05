@@ -166,25 +166,6 @@ const DeliveryStats = ({ cartQuote, orderDetails }: DeliveryStatsProps) => {
         )}
       </div>
 
-      {/* Resumen de operaciones */}
-      <div className="mt-6 pt-4 border-t">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
-          <div className="p-3 bg-blue-50 rounded-lg">
-            <div className="text-sm text-blue-600 font-medium">MS1 - Usuarios</div>
-            <div className="text-xs text-blue-500 mt-1">Validación de usuarios y direcciones</div>
-          </div>
-          
-          <div className="p-3 bg-purple-50 rounded-lg">
-            <div className="text-sm text-purple-600 font-medium">MS2 - Productos</div>
-            <div className="text-xs text-purple-500 mt-1">Precios vigentes y categorías</div>
-          </div>
-          
-          <div className="p-3 bg-green-50 rounded-lg">
-            <div className="text-sm text-green-600 font-medium">MS3 - Pedidos</div>
-            <div className="text-xs text-green-500 mt-1">Datos históricos de órdenes</div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

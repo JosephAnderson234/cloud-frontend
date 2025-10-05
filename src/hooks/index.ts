@@ -9,6 +9,8 @@ export * from './useSimplePagination';
 
 // Business entity hooks
 export * from './useUsuarios';
+export { useUserAddresses } from './useUserAddresses';
+export { useUserOrders } from './useUserOrders';
 export * from './useProductos';
 export * from './useProductosPaginated';
 export * from './usePedidos';
