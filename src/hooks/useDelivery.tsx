@@ -45,7 +45,7 @@ export const useDelivery = () => {
         isLoading: false 
       }));
       
-      showNotification(errorMessage, 'error');
+      showNotification({ message: errorMessage, type: 'error', duration: 3000 });
       return null;
     }
   };
