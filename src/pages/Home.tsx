@@ -70,7 +70,7 @@ export default function Home() {
                 <div className="h-8 bg-gray-200 rounded"></div>
               </div>
             ) : historyError ? (
-              <div className="text-red-600">Error: {historyError}</div>
+              <div className="text-gray-500 text-center py-4">Datos no disponibles</div>
             ) : userHistoryState ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -170,7 +170,7 @@ export default function Home() {
                 <div className="h-8 bg-gray-200 rounded w-1/2"></div>
               </div>
             ) : spentError ? (
-              <div className="text-red-600">Error: {spentError}</div>
+              <div className="text-gray-500 text-center py-4">Datos no disponibles</div>
             ) : userTotalSpent ? (
               <div className="text-center">
                 <div className="text-3xl font-bold text-blue-600 mb-2">
@@ -203,7 +203,7 @@ export default function Home() {
               ))}
             </div>
           ) : rankingError ? (
-            <div className="text-red-600">Error: {rankingError}</div>
+            <div className="text-gray-500 text-center py-8">Datos no disponibles</div>
           ) : (
             <div className="space-y-3">
               {categoryRanking.map((category, index) => (
