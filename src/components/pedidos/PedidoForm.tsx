@@ -1,22 +1,15 @@
 import { useState, useEffect } from 'react';
 import type { PedidoFormProps, PedidoFormData } from '@interfaces/pedidosComponents';
 import type { ProductoPedido } from '@interfaces/pedidos';
-import { getAllProducts } from '@services/productos';
-import type { Producto } from '@interfaces/productos';
 import ProductSelector from './ProductSelector';
 import OrderSummary from './OrderSummary';
 import useAuth from '@hooks/useAuthContext';
 
 export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: PedidoFormProps) {
-    const [productos, setProductos] = useState<Producto[]>([]);
-    const [productosLoading, setProductosLoading] = useState(false);
-    
     const user = useAuth();
 
     const [formData, setFormData] = useState<PedidoFormData>({
         id_usuario: user.session?.id_usuario || 0,
-        fecha_pedido: new Date().toISOString(),
-        estado: 'pendiente',
         total: 0,
         productos: []
     });
@@ -28,31 +21,14 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
 
     useEffect(() => {
         if (pedido) {
+            // Si estamos editando, solo permitimos actualizar productos y total
             setFormData({
                 id_usuario: pedido.id_usuario,
-                fecha_pedido: pedido.fecha_pedido,
-                estado: pedido.estado,
                 total: pedido.total,
                 productos: pedido.productos
             });
         }
     }, [pedido]);
-
-    useEffect(() => {
-        const fetchProductos = async () => {
-            setProductosLoading(true);
-            try {
-                const allProducts = await getAllProducts();
-                setProductos(allProducts);
-            } catch (error) {
-                console.error('Error fetching products:', error);
-            } finally {
-                setProductosLoading(false);
-            }
-        };
-
-        fetchProductos();
-    }, []);
 
     useEffect(() => {
         // Calcular total automáticamente
@@ -83,20 +59,24 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm()) {
-            onSubmit(formData);
+            if (pedido) {
+                // Si estamos editando, solo enviamos productos y total
+                onSubmit({
+                    productos: formData.productos,
+                    total: formData.total
+                });
+            } else {
+                // Si estamos creando, enviamos todo
+                onSubmit(formData);
+            }
         }
     };
-
 
     const handleProductsChange = (productos: ProductoPedido[]) => {
         setFormData(prev => ({ ...prev, productos }));
         if (errors.productos && productos.length > 0) {
             setErrors(prev => ({ ...prev, productos: undefined }));
         }
-    };
-
-    const handleStatusChange = (estado: 'pendiente' | 'entregado' | 'cancelado') => {
-        setFormData(prev => ({ ...prev, estado }));
     };
 
     return (
@@ -106,7 +86,7 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
                     {pedido ? 'Editar Pedido' : 'Crear Nuevo Pedido'}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                    {pedido ? 'Actualiza la información del pedido' : 'Completa los datos del nuevo pedido'}
+                    {pedido ? 'Actualiza los productos y cantidades del pedido' : 'Completa los datos del nuevo pedido'}
                 </p>
             </div>
 
@@ -114,47 +94,61 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Formulario Principal */}
                     <div className="lg:col-span-2 space-y-6">
-                        {/* Selector de Usuario */}
+                        {/* Información del Usuario */}
                         <div>
-                            {/*show the current user */}
                             <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                                <p className="text-sm text-gray-700">
-                                    Usuario: <span className="font-medium">{user.session?.nombre} ({user.session?.correo})</span>
-                                </p>
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-700">
+                                            <span className="font-medium">Usuario:</span> {user.session?.nombre}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            {user.session?.correo}
+                                        </p>
+                                    </div>
+                                    {pedido && (
+                                        <div className="text-right">
+                                            <p className="text-sm text-gray-700">
+                                                <span className="font-medium">ID del Pedido:</span>
+                                            </p>
+                                            <p className="text-sm text-gray-500 font-mono">
+                                                {pedido._id}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                {pedido && (
+                                    <div className="mt-3 pt-3 border-t border-gray-200">
+                                        <p className="text-sm text-gray-700">
+                                            <span className="font-medium">Fecha del Pedido:</span>{' '}
+                                            {new Date(pedido.fecha_pedido).toLocaleDateString('es-ES', {
+                                                year: 'numeric',
+                                                month: 'long',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                        </p>
+                                        <p className="text-sm text-gray-700 mt-1">
+                                            <span className="font-medium">Estado Actual:</span>{' '}
+                                            <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                                                pedido.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
+                                                pedido.estado === 'entregado' ? 'bg-green-100 text-green-800' :
+                                                'bg-red-100 text-red-800'
+                                            }`}>
+                                                {pedido.estado.charAt(0).toUpperCase() + pedido.estado.slice(1)}
+                                            </span>
+                                        </p>
+                                    </div>
+                                )}
                             </div>
                         </div>
-
-                        {/* Estado del Pedido (solo en edición) */}
-                        {pedido && (
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Estado del Pedido
-                                </label>
-                                <div className="flex space-x-4">
-                                    {(['pendiente', 'entregado', 'cancelado'] as const).map((estado) => (
-                                        <label key={estado} className="flex items-center">
-                                            <input
-                                                type="radio"
-                                                name="estado"
-                                                value={estado}
-                                                checked={formData.estado === estado}
-                                                onChange={(e) => handleStatusChange(e.target.value as typeof estado)}
-                                                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
-                                            />
-                                            <span className="ml-2 text-sm text-gray-700 capitalize">{estado}</span>
-                                        </label>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
 
                         {/* Selector de Productos */}
                         <div>
                             <ProductSelector
-                                productos={productos}
                                 selectedProducts={formData.productos}
                                 onProductsChange={handleProductsChange}
-                                loading={productosLoading}
                             />
                             {errors.productos && (
                                 <p className="mt-2 text-sm text-red-600">{errors.productos}</p>
@@ -164,7 +158,11 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
 
                     {/* Resumen del Pedido */}
                     <div className="lg:col-span-1">
-                        <OrderSummary productos={formData.productos} total={formData.total} />
+                        <OrderSummary 
+                            productos={formData.productos} 
+                            total={formData.total}
+                            showCalculation={true}
+                        />
                     </div>
                 </div>
 
@@ -180,7 +178,7 @@ export default function PedidoForm({ pedido, onSubmit, onCancel, loading }: Pedi
                     </button>
                     <button
                         type="submit"
-                        disabled={loading}
+                        disabled={loading || formData.productos.length === 0}
                         className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         {loading ? (

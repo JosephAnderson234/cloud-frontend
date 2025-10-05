@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
-import type { Pedido, HistorialPedido } from '@interfaces/pedidos';
-import type { PedidoFormData } from '@interfaces/pedidosComponents';
+import type { 
+    Pedido, 
+    HistorialPedido, 
+    CrearPedidoRequest,
+    ActualizarPedidoRequest,
+    CrearHistorialRequest,
+    FiltrosPedidos,
+    FiltrosHistorial
+} from '@interfaces/pedidos';
 import * as pedidosService from '@services/pedidos';
 import useAuth from './useAuthContext';
 
@@ -8,55 +15,79 @@ export const usePedidos = () => {
     const [pedidos, setPedidos] = useState<Pedido[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const {session} = useAuth();
+    const { session } = useAuth();
 
-    const fetchPedidosByUser = async (userId: number) => {
+    const fetchPedidosByUser = async (userId: number, filtros?: FiltrosPedidos) => {
         setLoading(true);
+        setError(null);
         try {
-            const userOrders = await pedidosService.getOrdersByUserId(userId);
+            const userOrders = await pedidosService.getOrdersByUserId(userId, filtros);
             setPedidos(userOrders);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error fetching orders');
+            setError(err instanceof Error ? err.message : 'Error al obtener los pedidos');
         } finally {
             setLoading(false);
         }
     };
 
-    const createPedido = async (data: PedidoFormData): Promise<Pedido> => {
+    const createPedido = async (data: CrearPedidoRequest) => {
         setLoading(true);
+        setError(null);
         try {
-            const newOrder = await pedidosService.createOrder(data);
+            const response = await pedidosService.createOrder(data);
+            const newOrder = response.pedido;
             setPedidos(prev => [...prev, newOrder]);
-            return newOrder;
+            return response;
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error creating order');
+            setError(err instanceof Error ? err.message : 'Error al crear el pedido');
             throw err;
         } finally {
             setLoading(false);
         }
     };
 
-    const updatePedido = async (id: string, data: Partial<PedidoFormData>): Promise<Pedido> => {
+    const updatePedido = async (id: string, data: ActualizarPedidoRequest) => {
         setLoading(true);
+        setError(null);
         try {
-            const updatedOrder = await pedidosService.updateOrder(id, data);
+            const response = await pedidosService.updateOrder(id, data);
+            const updatedOrder = response.pedido;
             setPedidos(prev => prev.map(pedido => pedido._id === id ? updatedOrder : pedido));
-            return updatedOrder;
+            return response;
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error updating order');
+            setError(err instanceof Error ? err.message : 'Error al actualizar el pedido');
             throw err;
         } finally {
             setLoading(false);
         }
     };
 
-    const deletePedido = async (id: string): Promise<void> => {
+    const updatePedidoStatus = async (id: string, estado: 'pendiente' | 'entregado' | 'cancelado') => {
         setLoading(true);
+        setError(null);
         try {
-            await pedidosService.deleteOrder(id);
-            setPedidos(prev => prev.filter(pedido => pedido._id !== id));
+            const response = await pedidosService.updateOrderStatus(id, { estado });
+            const updatedOrder = response.pedido;
+            setPedidos(prev => prev.map(pedido => pedido._id === id ? updatedOrder : pedido));
+            return response;
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error deleting order');
+            setError(err instanceof Error ? err.message : 'Error al actualizar el estado del pedido');
+            throw err;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const cancelPedido = async (id: string) => {
+        setLoading(true);
+        setError(null);
+        try {
+            const response = await pedidosService.cancelOrder(id);
+            const cancelledOrder = response.pedido;
+            setPedidos(prev => prev.map(pedido => pedido._id === id ? cancelledOrder : pedido));
+            return response;
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Error al cancelar el pedido');
             throw err;
         } finally {
             setLoading(false);
@@ -65,14 +96,28 @@ export const usePedidos = () => {
 
     const getPedido = async (id: string): Promise<Pedido> => {
         setLoading(true);
+        setError(null);
         try {
             return await pedidosService.getOrderById(id);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error fetching order');
+            setError(err instanceof Error ? err.message : 'Error al obtener el pedido');
             throw err;
         } finally {
             setLoading(false);
         }
+    };
+
+    // Funciones de conveniencia para filtros específicos
+    const fetchPendingOrders = async (userId: number) => {
+        return fetchPedidosByUser(userId, { estado: 'pendiente' });
+    };
+
+    const fetchDeliveredOrders = async (userId: number) => {
+        return fetchPedidosByUser(userId, { estado: 'entregado' });
+    };
+
+    const fetchCancelledOrders = async (userId: number) => {
+        return fetchPedidosByUser(userId, { estado: 'cancelado' });
     };
 
     useEffect(() => {
@@ -86,9 +131,13 @@ export const usePedidos = () => {
         loading,
         error,
         fetchPedidosByUser,
+        fetchPendingOrders,
+        fetchDeliveredOrders,
+        fetchCancelledOrders,
         createPedido,
         updatePedido,
-        deletePedido,
+        updatePedidoStatus,
+        cancelPedido,
         getPedido,
         clearError: () => setError(null)
     };
@@ -99,26 +148,29 @@ export const useHistorialPedidos = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const fetchHistorialByUser = async (userId: number) => {
+    const fetchHistorialByUser = async (userId: number, filtros?: FiltrosHistorial) => {
         setLoading(true);
+        setError(null);
         try {
-            const userHistory = await pedidosService.getOrderHistoryByUserId(userId);
+            const userHistory = await pedidosService.getOrderHistoryByUserId(userId, filtros);
             setHistorial(userHistory);
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error fetching order history');
+            setError(err instanceof Error ? err.message : 'Error al obtener el historial de pedidos');
         } finally {
             setLoading(false);
         }
     };
 
-    const createHistorialEntry = async (data: Omit<HistorialPedido, '_id'>): Promise<HistorialPedido> => {
+    const createHistorialEntry = async (pedidoId: string, data: CrearHistorialRequest) => {
         setLoading(true);
+        setError(null);
         try {
-            const newEntry = await pedidosService.createOrderHistory(data);
+            const response = await pedidosService.createOrderHistory(pedidoId, data);
+            const newEntry = response.historial;
             setHistorial(prev => [...prev, newEntry]);
-            return newEntry;
+            return response;
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Error creating history entry');
+            setError(err instanceof Error ? err.message : 'Error al crear la entrada del historial');
             throw err;
         } finally {
             setLoading(false);

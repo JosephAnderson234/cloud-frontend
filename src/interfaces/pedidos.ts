@@ -16,7 +16,50 @@ export interface Pedido {
 export interface HistorialPedido {
     _id: string;
     id_pedido: string;
-    fecha_entrega: string;
-    estado: string;
-    comentarios: string;
+    id_usuario: number;
+    fecha_evento: string;
+    estado: 'pendiente' | 'entregado' | 'cancelado';
+    comentarios?: string;
+}
+
+// Interfaces para crear pedidos e historial
+export interface CrearPedidoRequest {
+    id_usuario: number;
+    productos: ProductoPedido[];
+    total: number;
+}
+
+export interface CrearHistorialRequest {
+    estado: 'pendiente' | 'entregado' | 'cancelado';
+    comentarios?: string;
+    fecha_evento?: string;
+}
+
+export interface ActualizarEstadoPedidoRequest {
+    estado: 'pendiente' | 'entregado' | 'cancelado';
+}
+
+export interface ActualizarPedidoRequest {
+    productos?: ProductoPedido[];
+    total?: number;
+}
+
+// Respuestas de la API
+export interface PedidoResponse {
+    mensaje: string;
+    pedido: Pedido;
+}
+
+export interface HistorialResponse {
+    mensaje: string;
+    historial: HistorialPedido;
+}
+
+// Filtros para consultas
+export interface FiltrosPedidos {
+    estado?: 'pendiente' | 'entregado' | 'cancelado';
+}
+
+export interface FiltrosHistorial {
+    estado?: 'pendiente' | 'entregado' | 'cancelado';
 }

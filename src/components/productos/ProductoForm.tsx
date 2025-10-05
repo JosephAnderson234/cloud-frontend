@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import type { ProductoFormProps, ProductoFormData } from '@interfaces/productosComponents';
-import { useCategorias } from '@hooks/useProductos';
 import CategoriaSelector from './CategoriaSelector';
 
 export default function ProductoForm({ producto, onSubmit, onCancel, loading }: ProductoFormProps) {
-    const { categorias, loading: categoriasLoading } = useCategorias();
-    
     const [formData, setFormData] = useState<ProductoFormData>({
         nombre: '',
         descripcion: '',
@@ -151,10 +148,8 @@ export default function ProductoForm({ producto, onSubmit, onCancel, loading }: 
                 {/* Categoría */}
                 <div>
                     <CategoriaSelector
-                        categorias={categorias}
                         selectedCategoriaId={formData.idCategoria}
                         onCategoriaChange={handleCategoriaChange}
-                        loading={categoriasLoading}
                         required={true}
                     />
                     {errors.categoria_id && (

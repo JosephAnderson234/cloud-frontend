@@ -3,6 +3,7 @@ import App from "src/App";
 import { ProtectedRoute } from "./ProtectedRoute";
 import Productos from "@pages/Productos";
 import Pedidos from "@pages/Pedidos";
+import Home from "@pages/Home";
 import { Login, Register } from "@pages/auth";
 
 export const router = createBrowserRouter([
@@ -29,7 +30,7 @@ export const router = createBrowserRouter([
 				children: [
 				{
 					index: true,
-					element: <Productos />
+					element: <Home />
 				},
 				{
 					path:"products",

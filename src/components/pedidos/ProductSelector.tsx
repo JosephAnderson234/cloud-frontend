@@ -1,19 +1,67 @@
-import { useState } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { ProductSelectorProps } from '@interfaces/pedidosComponents';
 import type { ProductoPedido } from '@interfaces/pedidos';
+import type { ProductoResponseDTO } from '@interfaces/productos';
+import { searchProducts } from '../../services/productos';
 
-export default function ProductSelector({ productos, selectedProducts, onProductsChange, loading }: ProductSelectorProps) {
+export default function ProductSelector({ selectedProducts, onProductsChange }: Omit<ProductSelectorProps, 'productos' | 'loading'>) {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<ProductoResponseDTO[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
     const [newProduct, setNewProduct] = useState({
         id_producto: 0,
         cantidad: 1,
         precio_unitario: 0
     });
 
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        async (term: string) => {
+            if (!term.trim()) {
+                setSearchResults([]);
+                setShowDropdown(false);
+                return;
+            }
+
+            setIsSearching(true);
+            setShowDropdown(true);
+
+            try {
+                const results = await searchProducts(term, 0, 10); // Limitamos a 10 resultados
+                // searchProducts devuelve PaginatedResponse, necesitamos contents
+                setSearchResults(Array.isArray(results.contents) ? results.contents : []);
+            } catch (error) {
+                console.error('Error searching products:', error);
+                setSearchResults([]);
+            } finally {
+                setIsSearching(false);
+            }
+        },
+        []
+    );
+
+    // Effect for debouncing search
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            debouncedSearch(searchTerm);
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [searchTerm, debouncedSearch]);
+
+    const selectProduct = (producto: ProductoResponseDTO) => {
+        setNewProduct({
+            id_producto: producto.idProducto || 0,
+            cantidad: 1,
+            precio_unitario: producto.precio || 0
+        });
+        setSearchTerm(producto.nombre || '');
+        setShowDropdown(false);
+    };
+
     const addProduct = () => {
         if (newProduct.id_producto === 0) return;
-
-        const producto = productos.find(p => p.id_producto === newProduct.id_producto);
-        if (!producto) return;
 
         // Verificar si el producto ya está agregado
         const existingProduct = selectedProducts.find(p => p.id_producto === newProduct.id_producto);
@@ -30,7 +78,7 @@ export default function ProductSelector({ productos, selectedProducts, onProduct
             const newProducto: ProductoPedido = {
                 id_producto: newProduct.id_producto,
                 cantidad: newProduct.cantidad,
-                precio_unitario: producto.precio
+                precio_unitario: newProduct.precio_unitario
             };
             onProductsChange([...selectedProducts, newProducto]);
         }
@@ -41,6 +89,8 @@ export default function ProductSelector({ productos, selectedProducts, onProduct
             cantidad: 1,
             precio_unitario: 0
         });
+        setSearchTerm('');
+        setSearchResults([]);
     };
 
     const removeProduct = (id_producto: number) => {
@@ -61,8 +111,9 @@ export default function ProductSelector({ productos, selectedProducts, onProduct
     };
 
     const getProductName = (id_producto: number) => {
-        const producto = productos.find(p => p.id_producto === id_producto);
-        return producto?.nombre || 'Producto no encontrado';
+        // Buscar en los resultados de búsqueda actuales o en productos ya seleccionados
+        const foundProduct = searchResults.find(p => p.idProducto === id_producto);
+        return foundProduct?.nombre || `Producto ID: ${id_producto}`;
     };
 
     return (
@@ -70,34 +121,50 @@ export default function ProductSelector({ productos, selectedProducts, onProduct
             <div className="border-b pb-4">
                 <h4 className="text-lg font-medium text-gray-900 mb-4">Productos del Pedido</h4>
                 
-                {/* Add Product Form */}
+                {/* Product Search */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div className="md:col-span-2">
-                        <label htmlFor="producto" className="block text-sm font-medium text-gray-700 mb-2">
-                            Producto
+                    <div className="md:col-span-2 relative">
+                        <label htmlFor="product-search" className="block text-sm font-medium text-gray-700 mb-2">
+                            Buscar Producto
                         </label>
-                        <select
-                            id="producto"
-                            value={newProduct.id_producto}
-                            onChange={(e) => {
-                                const selectedProductId = Number(e.target.value);
-                                const selectedProducto = productos.find(p => p.id_producto === selectedProductId);
-                                setNewProduct(prev => ({
-                                    ...prev,
-                                    id_producto: selectedProductId,
-                                    precio_unitario: selectedProducto?.precio || 0
-                                }));
-                            }}
-                            disabled={loading}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
-                        >
-                            <option value={0}>Selecciona un producto</option>
-                            {productos.map((producto) => (
-                                <option key={producto.id_producto} value={producto.id_producto}>
-                                    {producto.nombre} - ${producto.precio.toFixed(2)}
-                                </option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                id="product-search"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Escribe para buscar productos..."
+                                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            />
+                            {isSearching && (
+                                <div className="absolute right-3 top-2.5">
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Search Results Dropdown */}
+                        {showDropdown && (
+                            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                                {searchResults.length > 0 ? (
+                                    searchResults.map((producto) => (
+                                        <button
+                                            key={producto.idProducto}
+                                            type="button"
+                                            onClick={() => selectProduct(producto)}
+                                            className="w-full px-3 py-2 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none"
+                                        >
+                                            <div className="font-medium text-gray-900">{producto.nombre}</div>
+                                            <div className="text-sm text-gray-600">${producto.precio.toFixed(2)}</div>
+                                        </button>
+                                    ))
+                                ) : searchTerm.trim() && !isSearching ? (
+                                    <div className="px-3 py-2 text-gray-500 text-sm">
+                                        No se encontraron productos
+                                    </div>
+                                ) : null}
+                            </div>
+                        )}
                     </div>
                     
                     <div>
@@ -117,8 +184,8 @@ export default function ProductSelector({ productos, selectedProducts, onProduct
                     <button
                         type="button"
                         onClick={addProduct}
-                        disabled={newProduct.id_producto === 0 || loading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        disabled={newProduct.id_producto === 0}
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
                     >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -139,6 +206,7 @@ export default function ProductSelector({ productos, selectedProducts, onProduct
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                         </svg>
                         <p className="text-sm text-gray-500">No hay productos seleccionados</p>
+                        <p className="text-xs text-gray-400 mt-1">Busca y selecciona productos arriba</p>
                     </div>
                 ) : (
                     <div className="space-y-2">
@@ -170,6 +238,14 @@ export default function ProductSelector({ productos, selectedProducts, onProduct
                                 </div>
                             </div>
                         ))}
+                        
+                        {/* Total */}
+                        <div className="border-t pt-3 mt-3">
+                            <div className="flex justify-between items-center text-lg font-semibold">
+                                <span>Total:</span>
+                                <span>${selectedProducts.reduce((total, p) => total + (p.precio_unitario * p.cantidad), 0).toFixed(2)}</span>
+                            </div>
+                        </div>
                     </div>
                 )}
             </div>

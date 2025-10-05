@@ -1,8 +1,11 @@
 export { default as PedidoTable } from './PedidoTable';
 export { default as PedidoForm } from './PedidoForm';
+export { default as PedidoFilters } from './PedidoFilters';
+export { default as PedidoStats } from './PedidoStats';
 export { default as ProductSelector } from './ProductSelector';
 export { default as UserSelector } from './UserSelector';
 export { default as OrderStatusBadge } from './OrderStatusBadge';
 export { default as OrderSummary } from './OrderSummary';
 export { default as HistoryModal } from './HistoryModal';
 export { default as HistoryForm } from './HistoryForm';
+export { default as StatusUpdate } from './StatusUpdate';

@@ -1,29 +1,34 @@
-import type { Pedido, HistorialPedido, ProductoPedido } from "./pedidos";
-import type { Producto } from "./productos";
+import type { 
+    Pedido, 
+    HistorialPedido, 
+    ProductoPedido, 
+    CrearPedidoRequest,
+    CrearHistorialRequest,
+    ActualizarPedidoRequest
+} from "./pedidos";
 import type { Usuario } from "./usuarios";
 
-export type PedidoFormData = Omit<Pedido, '_id'>;
+export type PedidoFormData = CrearPedidoRequest;
 
 export interface PedidoTableProps {
     pedidos: Pedido[];
     onEdit: (pedido: Pedido) => void;
     onDelete: (id: string) => void;
     onViewHistory: (id: string) => void;
+    onUpdateStatus: (id: string, estado: 'pendiente' | 'entregado' | 'cancelado') => void;
     loading: boolean;
 }
 
 export interface PedidoFormProps {
     pedido?: Pedido;
-    onSubmit: (data: PedidoFormData | Partial<PedidoFormData>) => void;
+    onSubmit: (data: PedidoFormData | ActualizarPedidoRequest) => void;
     onCancel: () => void;
     loading: boolean;
 }
 
 export interface ProductSelectorProps {
-    productos: Producto[];
     selectedProducts: ProductoPedido[];
     onProductsChange: (productos: ProductoPedido[]) => void;
-    loading: boolean;
 }
 
 export interface HistoryModalProps {
@@ -31,10 +36,14 @@ export interface HistoryModalProps {
     onClose: () => void;
     pedidoId: string;
     pedidoInfo: string;
+    historial?: HistorialPedido[];
+    onAddHistory?: (data: CrearHistorialRequest) => void;
+    historyLoading?: boolean;
 }
 
 export interface OrderStatusBadgeProps {
     status: 'pendiente' | 'entregado' | 'cancelado';
+    size?: 'sm' | 'md' | 'lg';
 }
 
 export interface UserSelectorProps {
@@ -42,16 +51,39 @@ export interface UserSelectorProps {
     selectedUserId: number | null;
     onUserChange: (userId: number) => void;
     loading: boolean;
+    disabled?: boolean;
 }
 
 export interface OrderSummaryProps {
     productos: ProductoPedido[];
     total: number;
+    showCalculation?: boolean;
 }
 
 export interface HistoryFormProps {
     pedidoId: string;
-    onSubmit: (data: Omit<HistorialPedido, '_id'>) => void;
+    onSubmit: (data: CrearHistorialRequest) => void;
     onCancel: () => void;
     loading: boolean;
+}
+
+export interface StatusUpdateProps {
+    currentStatus: 'pendiente' | 'entregado' | 'cancelado';
+    onUpdateStatus: (estado: 'pendiente' | 'entregado' | 'cancelado') => void;
+    loading: boolean;
+    disabled?: boolean;
+}
+
+export interface PedidoStatsProps {
+    pedidos: Pedido[];
+    loading?: boolean;
+}
+
+export interface PedidoFiltersProps {
+    onFilterChange: (filtros: {
+        estado?: 'pendiente' | 'entregado' | 'cancelado';
+        fechaDesde?: string;
+        fechaHasta?: string;
+    }) => void;
+    loading?: boolean;
 }

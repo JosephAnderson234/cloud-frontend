@@ -36,10 +36,8 @@ export interface CategoriaFormProps {
 
 // Selector Props
 export interface CategoriaSelectorProps {
-    categorias: CategoriaDTO[];
     selectedCategoriaId: number | null;
     onCategoriaChange: (categoriaId: number) => void;
-    loading: boolean;
     required?: boolean;
 }
 

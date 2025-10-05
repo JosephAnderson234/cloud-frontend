@@ -57,9 +57,9 @@ export default function ProductoFilters({
                         className="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
                     >
                         <option value="">Todas las categorías</option>
-                        {categorias.map((categoria) => (
-                            <option key={categoria.id_categoria} value={categoria.id_categoria}>
-                                {categoria.nombre_categoria}
+                        {Array.isArray(categorias) && categorias.map((categoria) => (
+                            <option key={categoria.idCategoria} value={categoria.idCategoria}>
+                                {categoria.nombreCategoria}
                             </option>
                         ))}
                     </select>

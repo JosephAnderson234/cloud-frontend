@@ -1,29 +1,28 @@
 import { useState } from 'react';
 import type { HistoryFormProps } from '@interfaces/pedidosComponents';
-import type { HistorialPedido } from '@interfaces/pedidos';
+import type { CrearHistorialRequest } from '@interfaces/pedidos';
 
-export default function HistoryForm({ pedidoId, onSubmit, onCancel, loading }: HistoryFormProps) {
-    const [formData, setFormData] = useState<Omit<HistorialPedido, '_id'>>({
-        id_pedido: pedidoId,
-        fecha_entrega: new Date().toISOString().slice(0, 16), // Format for datetime-local input
-        estado: '',
-        comentarios: ''
+export default function HistoryForm({ onSubmit, onCancel, loading }: HistoryFormProps) {
+    const [formData, setFormData] = useState<CrearHistorialRequest>({
+        estado: 'pendiente',
+        comentarios: '',
+        fecha_evento: new Date().toISOString().slice(0, 16) // Format for datetime-local input
     });
 
     const [errors, setErrors] = useState<{
         estado?: string;
-        fecha_entrega?: string;
+        fecha_evento?: string;
     }>({});
 
     const validateForm = (): boolean => {
         const newErrors: typeof errors = {};
 
-        if (!formData.estado.trim()) {
+        if (!formData.estado) {
             newErrors.estado = 'El estado es requerido';
         }
 
-        if (!formData.fecha_entrega) {
-            newErrors.fecha_entrega = 'La fecha es requerida';
+        if (!formData.fecha_evento) {
+            newErrors.fecha_evento = 'La fecha es requerida';
         }
 
         setErrors(newErrors);
@@ -33,10 +32,10 @@ export default function HistoryForm({ pedidoId, onSubmit, onCancel, loading }: H
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (validateForm()) {
-            // Convert datetime-local to ISO string
-            const submitData = {
+            // Convert datetime-local to ISO string if needed
+            const submitData: CrearHistorialRequest = {
                 ...formData,
-                fecha_entrega: new Date(formData.fecha_entrega).toISOString()
+                fecha_evento: formData.fecha_evento ? new Date(formData.fecha_evento).toISOString() : undefined
             };
             onSubmit(submitData);
         }
@@ -77,37 +76,36 @@ export default function HistoryForm({ pedidoId, onSubmit, onCancel, loading }: H
                             errors.estado ? 'border-red-300 bg-red-50' : 'border-gray-300'
                         }`}
                     >
-                        <option value="">Selecciona un estado</option>
                         <option value="pendiente">Pendiente</option>
-                        <option value="en proceso">En Proceso</option>
-                        <option value="en camino">En Camino</option>
                         <option value="entregado">Entregado</option>
                         <option value="cancelado">Cancelado</option>
-                        <option value="devuelto">Devuelto</option>
                     </select>
                     {errors.estado && (
                         <p className="mt-1 text-sm text-red-600">{errors.estado}</p>
                     )}
                 </div>
 
-                {/* Fecha de entrega */}
+                {/* Fecha del evento */}
                 <div>
-                    <label htmlFor="fecha_entrega" className="block text-sm font-medium text-gray-700 mb-2">
-                        Fecha y Hora <span className="text-red-500">*</span>
+                    <label htmlFor="fecha_evento" className="block text-sm font-medium text-gray-700 mb-2">
+                        Fecha y Hora del Evento
                     </label>
                     <input
                         type="datetime-local"
-                        id="fecha_entrega"
-                        name="fecha_entrega"
-                        value={formData.fecha_entrega}
+                        id="fecha_evento"
+                        name="fecha_evento"
+                        value={formData.fecha_evento}
                         onChange={handleChange}
                         className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                            errors.fecha_entrega ? 'border-red-300 bg-red-50' : 'border-gray-300'
+                            errors.fecha_evento ? 'border-red-300 bg-red-50' : 'border-gray-300'
                         }`}
                     />
-                    {errors.fecha_entrega && (
-                        <p className="mt-1 text-sm text-red-600">{errors.fecha_entrega}</p>
+                    {errors.fecha_evento && (
+                        <p className="mt-1 text-sm text-red-600">{errors.fecha_evento}</p>
                     )}
+                    <p className="mt-1 text-xs text-gray-500">
+                        Si no se especifica, se usará la fecha y hora actual
+                    </p>
                 </div>
 
                 {/* Comentarios */}
@@ -118,7 +116,7 @@ export default function HistoryForm({ pedidoId, onSubmit, onCancel, loading }: H
                     <textarea
                         id="comentarios"
                         name="comentarios"
-                        value={formData.comentarios}
+                        value={formData.comentarios || ''}
                         onChange={handleChange}
                         rows={3}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"

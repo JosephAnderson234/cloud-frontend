@@ -1,6 +1,6 @@
 import type { OrderSummaryProps } from '@interfaces/pedidosComponents';
 
-export default function OrderSummary({ productos, total }: OrderSummaryProps) {
+export default function OrderSummary({ productos, total, showCalculation = false }: OrderSummaryProps) {
     const subtotal = productos.reduce((sum, producto) => sum + (producto.precio_unitario * producto.cantidad), 0);
     const iva = subtotal * 0.16; // 16% IVA
     const totalItems = productos.reduce((sum, producto) => sum + producto.cantidad, 0);
@@ -9,22 +9,37 @@ export default function OrderSummary({ productos, total }: OrderSummaryProps) {
         <div className="bg-gray-50 rounded-lg p-6 space-y-4">
             <h4 className="text-lg font-semibold text-gray-900">Resumen del Pedido</h4>
             
-            <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">Items ({totalItems})</span>
-                    <span className="text-gray-900">${subtotal.toFixed(2)}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                    <span className="text-gray-600">IVA (16%)</span>
-                    <span className="text-gray-900">${iva.toFixed(2)}</span>
-                </div>
-                <div className="border-t pt-2">
-                    <div className="flex justify-between font-semibold text-lg">
-                        <span className="text-gray-900">Total</span>
-                        <span className="text-blue-600">${total.toFixed(2)}</span>
+            {showCalculation ? (
+                <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Items ({totalItems})</span>
+                        <span className="text-gray-900">${subtotal.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">IVA (16%)</span>
+                        <span className="text-gray-900">${iva.toFixed(2)}</span>
+                    </div>
+                    <div className="border-t pt-2">
+                        <div className="flex justify-between font-semibold text-lg">
+                            <span className="text-gray-900">Total</span>
+                            <span className="text-blue-600">${total.toFixed(2)}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            ) : (
+                <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                        <span className="text-gray-600">Total de productos</span>
+                        <span className="text-gray-900">{totalItems}</span>
+                    </div>
+                    <div className="border-t pt-2">
+                        <div className="flex justify-between font-semibold text-lg">
+                            <span className="text-gray-900">Total del Pedido</span>
+                            <span className="text-blue-600">${total.toFixed(2)}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {productos.length > 0 && (
                 <div className="border-t pt-4">
