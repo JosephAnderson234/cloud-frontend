@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { ProductSelectorProps } from '@interfaces/pedidosComponents';
 import type { ProductoPedido } from '@interfaces/pedidos';
 import type { ProductoResponseDTO } from '@interfaces/productos';
@@ -14,6 +14,21 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
         cantidad: 1,
         precio_unitario: 0
     });
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Cerrar dropdown al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Debounced search function
     const debouncedSearch = useCallback(
@@ -21,6 +36,11 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
             if (!term.trim()) {
                 setSearchResults([]);
                 setShowDropdown(false);
+                return;
+            }
+
+            // No buscar si ya hay un producto seleccionado y el término coincide
+            if (newProduct.id_producto > 0 && searchResults.length === 0) {
                 return;
             }
 
@@ -38,7 +58,7 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
                 setIsSearching(false);
             }
         },
-        []
+        [newProduct.id_producto, searchResults.length]
     );
 
     // Effect for debouncing search
@@ -58,6 +78,7 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
         });
         setSearchTerm(producto.nombre || '');
         setShowDropdown(false);
+        setSearchResults([]); // Limpiar resultados de búsqueda
     };
 
     const addProduct = () => {
@@ -91,6 +112,7 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
         });
         setSearchTerm('');
         setSearchResults([]);
+        setShowDropdown(false); // Asegurar que el dropdown esté cerrado
     };
 
     const removeProduct = (id_producto: number) => {
@@ -123,7 +145,7 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
                 
                 {/* Product Search */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
-                    <div className="md:col-span-2 relative">
+                    <div className="md:col-span-2 relative" ref={dropdownRef}>
                         <label htmlFor="product-search" className="block text-sm font-medium text-gray-700 mb-2">
                             Buscar Producto
                         </label>
@@ -132,7 +154,26 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
                                 type="text"
                                 id="product-search"
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    setSearchTerm(value);
+                                    // Si el usuario está borrando o cambiando el texto, resetear selección
+                                    if (newProduct.id_producto > 0 && value !== searchTerm) {
+                                        setNewProduct({
+                                            id_producto: 0,
+                                            cantidad: 1,
+                                            precio_unitario: 0
+                                        });
+                                    }
+                                }}
+                                onFocus={() => {
+                                    // Solo mostrar dropdown si no hay producto seleccionado o si el campo está vacío
+                                    if (newProduct.id_producto === 0 || !searchTerm.trim()) {
+                                        if (searchTerm.trim()) {
+                                            debouncedSearch(searchTerm);
+                                        }
+                                    }
+                                }}
                                 placeholder="Escribe para buscar productos..."
                                 className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                             />
@@ -140,6 +181,26 @@ export default function ProductSelector({ selectedProducts, onProductsChange }: 
                                 <div className="absolute right-3 top-2.5">
                                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
                                 </div>
+                            )}
+                            {newProduct.id_producto > 0 && !isSearching && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setNewProduct({
+                                            id_producto: 0,
+                                            cantidad: 1,
+                                            precio_unitario: 0
+                                        });
+                                        setSearchTerm('');
+                                        setSearchResults([]);
+                                        setShowDropdown(false);
+                                    }}
+                                    className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
                             )}
                         </div>
                         

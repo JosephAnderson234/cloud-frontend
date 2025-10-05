@@ -107,7 +107,7 @@ export const updateOrder = async (id_pedido: string, pedido: ActualizarPedidoReq
 /**
  * Cancelar un pedido (cambiar estado a cancelado)
  */
-export const cancelOrder = async (id_pedido: string): Promise<PedidoResponse> => {
+export const deletePedido = async (id_pedido: string): Promise<PedidoResponse> => {
     const response = await fetch(`${API_URL}/pedidos/${id_pedido}`, {
         method: 'DELETE'
     });

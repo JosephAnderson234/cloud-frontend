@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { CategoriaDTO } from '@interfaces/productos';
 import { searchCategories } from '../../services/productos';
 
@@ -18,6 +18,21 @@ export default function CategoriaSelector({
     const [isSearching, setIsSearching] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedCategory, setSelectedCategory] = useState<CategoriaDTO | null>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Cerrar dropdown al hacer clic fuera
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, []);
 
     // Debounced search function
     const debouncedSearch = useCallback(
@@ -25,6 +40,11 @@ export default function CategoriaSelector({
             if (!term.trim()) {
                 setSearchResults([]);
                 setShowDropdown(false);
+                return;
+            }
+
+            // No buscar si ya hay una categoría seleccionada y el término coincide
+            if (selectedCategory && selectedCategory.nombreCategoria === term) {
                 return;
             }
 
@@ -42,7 +62,7 @@ export default function CategoriaSelector({
                 setIsSearching(false);
             }
         },
-        []
+        [selectedCategory]
     );
 
     // Effect for debouncing search
@@ -67,6 +87,7 @@ export default function CategoriaSelector({
         setSelectedCategory(categoria);
         setSearchTerm(categoria.nombreCategoria || '');
         setShowDropdown(false);
+        setSearchResults([]); // Limpiar resultados de búsqueda
         onCategoriaChange(categoria.idCategoria || 0);
     };
 
@@ -74,6 +95,7 @@ export default function CategoriaSelector({
         setSelectedCategory(null);
         setSearchTerm('');
         setShowDropdown(false);
+        setSearchResults([]); // Limpiar resultados de búsqueda
         onCategoriaChange(0);
     };
 
@@ -83,13 +105,28 @@ export default function CategoriaSelector({
                 Categoría {required && <span className="text-red-500">*</span>}
             </label>
             
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
                 <div className="relative">
                     <input
                         type="text"
                         id="categoria-search"
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setSearchTerm(value);
+                            // Si el usuario está borrando o cambiando el texto, resetear selección
+                            if (selectedCategory && value !== selectedCategory.nombreCategoria) {
+                                setSelectedCategory(null);
+                            }
+                        }}
+                        onFocus={() => {
+                            // Solo mostrar dropdown si no hay categoría seleccionada o si el usuario está cambiando
+                            if (!selectedCategory || searchTerm !== selectedCategory.nombreCategoria) {
+                                if (searchTerm.trim()) {
+                                    debouncedSearch(searchTerm);
+                                }
+                            }
+                        }}
                         placeholder="Escribe para buscar categorías..."
                         className={`w-full px-3 py-2 pr-10 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
                             selectedCategory ? 'border-green-300 bg-green-50' : 'border-gray-300'

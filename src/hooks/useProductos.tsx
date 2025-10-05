@@ -10,11 +10,18 @@ export const useProductos = () => {
 
     const fetchProductos = async () => {
         setLoading(true);
+        setError(null);
         try {
             const allProducts = await productosService.getAllProductsWithCategories();
-            setProductos(allProducts);
+            if (Array.isArray(allProducts)) {
+                setProductos(allProducts);
+            } else {
+                console.warn('useProductos: Respuesta de productos no es un array');
+                setProductos([]);
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error fetching products');
+            setProductos([]);
         } finally {
             setLoading(false);
         }
@@ -22,15 +29,24 @@ export const useProductos = () => {
 
     const createProducto = async (data: ProductoFormData): Promise<ProductoResponseDTO> => {
         setLoading(true);
+        setError(null);
         try {
+            // Validar datos de entrada
+            if (!data || !data.nombre || !data.precio || !data.idCategoria) {
+                throw new Error('Datos del producto incompletos');
+            }
+            
             // Convert ProductoFormData to ProductoRequestDTO
             const requestData: ProductoRequestDTO = {
                 nombre: data.nombre,
-                descripcion: data.descripcion,
+                descripcion: data.descripcion || '',
                 precio: data.precio,
                 idCategoria: data.idCategoria
             };
             const newProduct = await productosService.createProduct(requestData);
+            if (!newProduct) {
+                throw new Error('No se recibió respuesta del servidor');
+            }
             // Refetch to get updated data with category info
             await fetchProductos();
             return newProduct;
@@ -44,15 +60,24 @@ export const useProductos = () => {
 
     const updateProducto = async (id: number, data: ProductoFormData): Promise<ProductoResponseDTO> => {
         setLoading(true);
+        setError(null);
         try {
+            // Validar datos de entrada
+            if (!id || !data || !data.nombre || !data.precio || !data.idCategoria) {
+                throw new Error('ID o datos del producto incompletos');
+            }
+            
             // Convert ProductoFormData to ProductoRequestDTO
             const requestData: ProductoRequestDTO = {
                 nombre: data.nombre,
-                descripcion: data.descripcion,
+                descripcion: data.descripcion || '',
                 precio: data.precio,
                 idCategoria: data.idCategoria
             };
             const updatedProduct = await productosService.updateProduct(id, requestData);
+            if (!updatedProduct) {
+                throw new Error('No se recibió respuesta del servidor');
+            }
             // Refetch to get updated data with category info
             await fetchProductos();
             return updatedProduct;
@@ -66,7 +91,13 @@ export const useProductos = () => {
 
     const deleteProducto = async (id: number): Promise<void> => {
         setLoading(true);
+        setError(null);
         try {
+            // Validar ID
+            if (!id || id <= 0) {
+                throw new Error('ID de producto inválido');
+            }
+            
             await productosService.deleteProduct(id);
             setProductos(prev => prev.filter(producto => producto.idProducto !== id));
         } catch (err) {

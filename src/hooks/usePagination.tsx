@@ -67,12 +67,17 @@ export function usePagination<T>({
 
     // Set data from PaginatedResponse
     const setData = useCallback((response: PaginatedResponse<T>) => {
-        setDataState(response.contents);
-        setCurrentPage(response.page);
-        setPageSize(response.size);
-        setTotalElements(response.totalElements);
-        setTotalPages(response.totalPages);
-    }, []);
+        if (!response) {
+            console.warn('usePagination: Respuesta vacía recibida');
+            return;
+        }
+        
+        setDataState(Array.isArray(response.contents) ? response.contents : []);
+        setCurrentPage(Math.max(1, response.page || 1));
+        setPageSize(Math.max(1, response.size || initialPageSize));
+        setTotalElements(Math.max(0, response.totalElements || 0));
+        setTotalPages(Math.max(0, response.totalPages || 0));
+    }, [initialPageSize]);
 
     // Navigation functions
     const goToPage = useCallback((page: number) => {

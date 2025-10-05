@@ -5,6 +5,15 @@ import type { NavigationItem } from '@interfaces/authComponents';
 
 const navigation: NavigationItem[] = [
     {
+        name: 'Inicio',
+        href: '/',
+        icon: ({ className }) => (
+            <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+        ),
+    },
+    {
         name: 'Productos',
         href: '/products',
         icon: ({ className }) => (
@@ -56,13 +65,13 @@ export default function NavBar() {
                     {/* Logo y navegación principal */}
                     <div className="flex items-center">
                         {/* Logo */}
-                        <Link to={isAuthenticated ? "/products" : "/auth/login"} className="flex items-center">
+                        <Link to={isAuthenticated ? "/" : "/auth/login"} className="flex items-center">
                             <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-lg flex items-center justify-center mr-3">
                                 <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
                             </div>
-                            <span className="text-xl font-bold text-gray-900">CloudApp</span>
+                            <span className="text-xl font-bold text-gray-900">Dips</span>
                         </Link>
 
                         {/* Navigation Links - Desktop */}

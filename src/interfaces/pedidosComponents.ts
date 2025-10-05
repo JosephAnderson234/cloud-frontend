@@ -15,7 +15,6 @@ export interface PedidoTableProps {
     onEdit: (pedido: Pedido) => void;
     onDelete: (id: string) => void;
     onViewHistory: (id: string) => void;
-    onUpdateStatus: (id: string, estado: 'pendiente' | 'entregado' | 'cancelado') => void;
     loading: boolean;
 }
 

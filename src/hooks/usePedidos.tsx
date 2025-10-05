@@ -22,9 +22,16 @@ export const usePedidos = () => {
         setError(null);
         try {
             const userOrders = await pedidosService.getOrdersByUserId(userId, filtros);
-            setPedidos(userOrders);
+            // Validar que la respuesta sea un array válido
+            if (Array.isArray(userOrders)) {
+                setPedidos(userOrders);
+            } else {
+                setPedidos([]);
+                setError('Formato de respuesta inválido del servidor');
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error al obtener los pedidos');
+            setPedidos([]); // Limpiar pedidos en caso de error
         } finally {
             setLoading(false);
         }
@@ -35,9 +42,13 @@ export const usePedidos = () => {
         setError(null);
         try {
             const response = await pedidosService.createOrder(data);
-            const newOrder = response.pedido;
-            setPedidos(prev => [...prev, newOrder]);
-            return response;
+            if (response && response.pedido) {
+                const newOrder = response.pedido;
+                setPedidos(prev => [...prev, newOrder]);
+                return response;
+            } else {
+                throw new Error('Respuesta inválida del servidor');
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error al crear el pedido');
             throw err;
@@ -51,9 +62,13 @@ export const usePedidos = () => {
         setError(null);
         try {
             const response = await pedidosService.updateOrder(id, data);
-            const updatedOrder = response.pedido;
-            setPedidos(prev => prev.map(pedido => pedido._id === id ? updatedOrder : pedido));
-            return response;
+            if (response && response.pedido) {
+                const updatedOrder = response.pedido;
+                setPedidos(prev => prev.map(pedido => pedido._id === id ? updatedOrder : pedido));
+                return response;
+            } else {
+                throw new Error('Respuesta inválida del servidor');
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error al actualizar el pedido');
             throw err;
@@ -82,10 +97,16 @@ export const usePedidos = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await pedidosService.cancelOrder(id);
-            const cancelledOrder = response.pedido;
-            setPedidos(prev => prev.map(pedido => pedido._id === id ? cancelledOrder : pedido));
-            return response;
+            const response = await pedidosService.deletePedido(id);
+            if (response && response.pedido) {
+                const cancelledOrder = response.pedido;
+                setPedidos(prev => prev.map(pedido => pedido._id === id ? cancelledOrder : pedido));
+                return response;
+            } else {
+                // Si no hay respuesta con pedido, simplemente remover de la lista
+                setPedidos(prev => prev.filter(pedido => pedido._id !== id));
+                return { mensaje: 'Pedido eliminado', pedido: null };
+            }
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error al cancelar el pedido');
             throw err;

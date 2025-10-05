@@ -10,7 +10,7 @@ import PedidoForm from '@components/pedidos/PedidoForm';
 import HistoryModal from '@components/pedidos/HistoryModal';
 
 export default function Pedidos() {
-    const { pedidos, loading, error, createPedido, updatePedido, deletePedido, clearError } = usePedidos();
+    const { pedidos, loading, error, createPedido, updatePedido, cancelPedido, clearError } = usePedidos();
     const { usuarios } = useUsuarios();
     
     // Estados para controlar la UI
@@ -74,7 +74,7 @@ export default function Pedidos() {
     const handleDeletePedido = async () => {
         if (deleteConfirm.pedido) {
             try {
-                await deletePedido(deleteConfirm.pedido._id);
+                await cancelPedido(deleteConfirm.pedido._id);
                 setDeleteConfirm({ show: false, pedido: null });
                 showNotification('Pedido eliminado exitosamente', 'success');
             } catch (error) {
