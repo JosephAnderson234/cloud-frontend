@@ -23,4 +23,3 @@ export * from './Pagination';
 
 // Delivery module types
 export * from './delivery';
-export * from './deliveryComponents';

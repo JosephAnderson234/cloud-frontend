@@ -1,7 +1,7 @@
 import type { PedidoTableProps } from '@interfaces/pedidosComponents';
 import OrderStatusBadge from './OrderStatusBadge';
 
-export default function PedidoTable({ pedidos, onEdit, onDelete, onViewHistory, loading }: PedidoTableProps) {
+export default function PedidoTable({ pedidos, onEdit, onDelete, loading }: PedidoTableProps) {
     if (loading) {
         return (
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -117,15 +117,6 @@ export default function PedidoTable({ pedidos, onEdit, onDelete, onViewHistory, 
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end space-x-2">
-                                            <button
-                                                onClick={() => onViewHistory(pedidoId)}
-                                                className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                                            >
-                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                Historial
-                                            </button>
                                             <button
                                                 onClick={() => onEdit(pedido)}
                                                 className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
