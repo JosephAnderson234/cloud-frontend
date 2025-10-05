@@ -144,7 +144,7 @@ export const getOrderHistoryByUserId = async (id_usuario: number, filtros?: Filt
  * Registrar una nueva entrada en el historial de un pedido
  */
 export const createOrderHistory = async (id_pedido: string, historial: CrearHistorialRequest): Promise<HistorialResponse> => {
-    const response = await fetch(`${API_URL}/historial/${id_pedido}`, {
+    const response = await fetch(`${API_URL}/pedidos/${id_pedido}/historial`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

@@ -9,3 +9,4 @@ export { default as OrderSummary } from './OrderSummary';
 export { default as HistoryModal } from './HistoryModal';
 export { default as HistoryForm } from './HistoryForm';
 export { default as StatusUpdate } from './StatusUpdate';
+export { default as HistorialSection } from './HistorialSection';

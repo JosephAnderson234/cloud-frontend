@@ -14,6 +14,7 @@ export { useUserOrders } from './useUserOrders';
 export * from './useProductos';
 export * from './useProductosPaginated';
 export * from './usePedidos';
+export { useOrderHistory } from './useOrderHistory';
 
 // Analytics hooks
 export * from './useAnalytics';

@@ -1,29 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { HistoryModalProps } from '@interfaces/pedidosComponents';
-import type { HistorialPedido } from '@interfaces/pedidos';
-import { useHistorialPedidos } from '@hooks/usePedidos';
+import type { CrearHistorialRequest } from '@interfaces/pedidos';
+import { useOrderHistory } from '@hooks/useOrderHistory';
+import useAuth from '@hooks/useAuthContext';
 import HistoryForm from './HistoryForm';
 
 export default function HistoryModal({ isOpen, onClose, pedidoId, pedidoInfo }: HistoryModalProps) {
-    const { historial, loading, error, createHistorialEntry, clearError } = useHistorialPedidos();
+    const { session } = useAuth();
+    const { historial, loading, error, createHistorialEntry, refetchHistory, clearError } = useOrderHistory(
+        pedidoId, 
+        session?.id_usuario || null
+    );
     const [showForm, setShowForm] = useState(false);
-    const [filteredHistory, setFilteredHistory] = useState<HistorialPedido[]>([]);
-    useEffect(() => {
-        if (isOpen && pedidoId) {
-            // Filtrar historial por pedido específico
-            const pedidoHistory = historial.filter(h => h.id_pedido === pedidoId);
-            setFilteredHistory(pedidoHistory);
-        }
-    }, [isOpen, pedidoId, historial]);
 
-    const handleCreateHistory = async (data: Omit<HistorialPedido, '_id'>) => {
+    const handleCreateHistory = async (data: CrearHistorialRequest) => {
         try {
             await createHistorialEntry(data);
             setShowForm(false);
         } catch (error) {
             console.error('Error creating history entry:', error);
         }
+    };
+
+    const handleRefresh = async () => {
+        await refetchHistory();
     };
 
     const handleClose = () => {
@@ -79,6 +80,16 @@ export default function HistoryModal({ isOpen, onClose, pedidoId, pedidoInfo }: 
                                         </p>
                                     </div>
                                     <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={handleRefresh}
+                                            disabled={loading}
+                                            className="inline-flex items-center px-3 py-1.5 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+                                        >
+                                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                            </svg>
+                                            Refrescar
+                                        </button>
                                         {!showForm && (
                                             <button
                                                 onClick={() => setShowForm(true)}
@@ -124,36 +135,50 @@ export default function HistoryModal({ isOpen, onClose, pedidoId, pedidoInfo }: 
                                     {/* History List */}
                                     <div>
                                         <h4 className="text-md font-medium text-gray-900 mb-4">
-                                            Entradas del historial ({filteredHistory.length})
+                                            Entradas del historial ({historial.length})
                                         </h4>
                                         
-                                        {loading && filteredHistory.length === 0 ? (
+                                        {loading && historial.length === 0 ? (
                                             <div className="space-y-3">
                                                 {[...Array(3)].map((_, i) => (
                                                     <div key={i} className="animate-pulse bg-gray-200 h-20 rounded-lg"></div>
                                                 ))}
                                             </div>
-                                        ) : filteredHistory.length === 0 ? (
+                                        ) : historial.length === 0 ? (
                                             <div className="text-center py-8">
                                                 <svg className="w-12 h-12 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                 </svg>
                                                 <p className="text-sm text-gray-500">No hay entradas en el historial</p>
+                                                <p className="text-xs text-gray-400 mt-1">Agrega la primera entrada usando el formulario</p>
                                             </div>
                                         ) : (
                                             <div className="space-y-3 max-h-96 overflow-y-auto">
-                                                {filteredHistory.map((entrada) => (
-                                                    <div key={entrada._id} className="bg-gray-50 rounded-lg p-4">
+                                                {historial.map((entrada, index) => (
+                                                    <div key={entrada._id} className="bg-gray-50 rounded-lg p-4 border-l-4 border-blue-500">
                                                         <div className="flex justify-between items-start mb-2">
-                                                            <h5 className="text-sm font-medium text-gray-900">
-                                                                Estado: {entrada.estado}
-                                                            </h5>
+                                                            <div className="flex items-center space-x-2">
+                                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                                                    entrada.estado === 'entregado' ? 'bg-green-100 text-green-800' :
+                                                                    entrada.estado === 'pendiente' ? 'bg-yellow-100 text-yellow-800' :
+                                                                    'bg-red-100 text-red-800'
+                                                                }`}>
+                                                                    {entrada.estado === 'entregado' ? '✅' : 
+                                                                     entrada.estado === 'pendiente' ? '⏳' : '❌'}
+                                                                    {entrada.estado}
+                                                                </span>
+                                                                {index === 0 && (
+                                                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                                                        Más reciente
+                                                                    </span>
+                                                                )}
+                                                            </div>
                                                             <span className="text-xs text-gray-500">
-                                                                {formatDate(entrada.fecha_entrega)}
+                                                                {formatDate(entrada.fecha_evento)}
                                                             </span>
                                                         </div>
                                                         {entrada.comentarios && (
-                                                            <p className="text-sm text-gray-600 mt-2">
+                                                            <p className="text-sm text-gray-600 mt-2 bg-white p-2 rounded border">
                                                                 {entrada.comentarios}
                                                             </p>
                                                         )}

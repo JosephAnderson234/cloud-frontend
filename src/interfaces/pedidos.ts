@@ -71,3 +71,13 @@ export interface FiltrosPedidos {
 export interface FiltrosHistorial {
     estado?: 'pendiente' | 'entregado' | 'cancelado';
 }
+
+// Interfaz para mostrar historial en la subsección
+export interface HistorialEntry {
+    _id: string;
+    id_pedido: string;
+    id_usuario: number;
+    fecha_evento: string;
+    estado: 'pendiente' | 'entregado' | 'cancelado';
+    comentarios?: string;
+}
