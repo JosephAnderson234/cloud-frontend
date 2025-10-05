@@ -12,3 +12,9 @@ export * from './useUsuarios';
 export * from './useProductos';
 export * from './useProductosPaginated';
 export * from './usePedidos';
+
+// Analytics hooks
+export * from './useAnalytics';
+
+// Delivery hooks
+export * from './useDelivery';

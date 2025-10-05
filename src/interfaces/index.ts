@@ -15,5 +15,12 @@ export * from './productosComponents';
 export * from './pedidos';
 export * from './pedidosComponents';
 
+// Analytics types
+export * from './analytics';
+
 // Pagination
 export * from './Pagination';
+
+// Delivery module types
+export * from './delivery';
+export * from './deliveryComponents';

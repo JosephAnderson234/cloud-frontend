@@ -4,6 +4,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import Productos from "@pages/Productos";
 import Pedidos from "@pages/Pedidos";
 import Home from "@pages/Home";
+import Delivery from "@pages/Delivery";
 import { Login, Register } from "@pages/auth";
 
 export const router = createBrowserRouter([
@@ -39,6 +40,10 @@ export const router = createBrowserRouter([
 				{
 					path:"orders",
 					element:<Pedidos />
+				},
+				{
+					path:"delivery",
+					element:<Delivery />
 				}],
 
 
