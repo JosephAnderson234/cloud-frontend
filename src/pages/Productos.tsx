@@ -6,6 +6,7 @@ import { useNotification } from '@hooks/useNotification';
 import productosService from '@services/productos';
 import ConfirmModal from '@components/ConfirmModal';
 import SimplePagination from '@components/common/SimplePagination';
+import ProtectedComponent from '../components/auth/ProtectedComponent';
 import { 
     ProductoTable, 
     ProductoForm, 
@@ -227,21 +228,22 @@ export default function Productos() {
                                 Categorías
                             </button>
                         </div>
-                        
-                        <button
-                            onClick={() => {
-                                if (viewMode === 'productos') {
-                                    setEditingProducto(undefined);
-                                    setShowProductoForm(true);
-                                } else {
-                                    setEditingCategoria(undefined);
-                                    setShowCategoriaForm(true);
-                                }
-                            }}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                        >
-                            + Agregar {viewMode === 'productos' ? 'Producto' : 'Categoría'}
-                        </button>
+                        <ProtectedComponent>
+                            <button
+                                onClick={() => {
+                                    if (viewMode === 'productos') {
+                                        setEditingProducto(undefined);
+                                        setShowProductoForm(true);
+                                    } else {
+                                        setEditingCategoria(undefined);
+                                        setShowCategoriaForm(true);
+                                    }
+                                }}
+                                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                            >
+                                + Agregar {viewMode === 'productos' ? 'Producto' : 'Categoría'}
+                            </button>
+                        </ProtectedComponent>
                     </div>
                 </div>
             </div>
@@ -319,7 +321,7 @@ export default function Productos() {
                             />
                             
                             {/* Paginación */}
-                            {categories.totalElements > 0 && filters.searchTerm === '' && (
+                            {categories.totalElements > 0 && (
                                 <SimplePagination
                                     currentPage={categories.currentPage}
                                     totalPages={categories.totalPages}

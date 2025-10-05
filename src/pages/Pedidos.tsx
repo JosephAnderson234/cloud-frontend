@@ -12,14 +12,14 @@ import HistoryModal from '@components/pedidos/HistoryModal';
 export default function Pedidos() {
     const { pedidos, loading, error, createPedido, updatePedido, cancelPedido, clearError } = usePedidos();
     const { usuarios } = useUsuarios();
-    
+
     // Estados para controlar la UI
     const [showForm, setShowForm] = useState(false);
     const [editingPedido, setEditingPedido] = useState<Pedido | undefined>();
-    const [historyModal, setHistoryModal] = useState<{ 
-        show: boolean; 
-        pedidoId: string; 
-        pedidoInfo: string; 
+    const [historyModal, setHistoryModal] = useState<{
+        show: boolean;
+        pedidoId: string;
+        pedidoInfo: string;
     }>({
         show: false,
         pedidoId: '',
@@ -29,7 +29,7 @@ export default function Pedidos() {
         show: false,
         pedido: null
     });
-    
+
     // Estados para notificaciones
     const [notification, setNotification] = useState<{
         show: boolean;
@@ -122,27 +122,27 @@ export default function Pedidos() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="mb-8">
-                    <div className="sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Gestión de Pedidos</h1>
-                            <p className="mt-2 text-gray-600">
-                                Administra los pedidos del sistema, su estado y historial de cambios.
-                            </p>
+                        <div className="sm:flex sm:items-center sm:justify-between">
+                            <div>
+                                <h1 className="text-3xl font-bold text-gray-900">Gestión de Pedidos</h1>
+                                <p className="mt-2 text-gray-600">
+                                    Administra los pedidos del sistema, su estado y historial de cambios.
+                                </p>
+                            </div>
+                            <div className="mt-4 sm:mt-0">
+                                {!showForm && (
+                                    <button
+                                        onClick={() => setShowForm(true)}
+                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                        </svg>
+                                        Nuevo Pedido
+                                    </button>
+                                )}
+                            </div>
                         </div>
-                        <div className="mt-4 sm:mt-0">
-                            {!showForm && (
-                                <button
-                                    onClick={() => setShowForm(true)}
-                                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                                >
-                                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                    </svg>
-                                    Nuevo Pedido
-                                </button>
-                            )}
-                        </div>
-                    </div>
                 </div>
 
                 {/* Error General */}

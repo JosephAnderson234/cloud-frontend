@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import useAuthContext from '@hooks/useAuthContext';
 import { 
-  useHealthStatus, 
   useUserHistoryState, 
   useUserTotalSpent, 
   useCategoryRanking 
@@ -16,9 +15,6 @@ export default function Home() {
     fecha_inicio: '2025-01-01',
     fecha_fin: '2025-12-31'
   });
-
-  // Use analytics hooks
-  const { healthStatus, loading: healthLoading, error: healthError } = useHealthStatus();
   const { 
     userHistoryState, 
     loading: historyLoading, 
@@ -61,29 +57,6 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-8">Dashboard de Analytics</h1>
-        
-        {/* Health Status */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">Estado del Sistema</h2>
-          {healthLoading ? (
-            <div className="animate-pulse">
-              <div className="h-4 bg-gray-200 rounded w-1/4"></div>
-            </div>
-          ) : healthError ? (
-            <div className="text-red-600">Error: {healthError}</div>
-          ) : (
-            <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-              healthStatus?.status === 'ok' 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-red-100 text-red-800'
-            }`}>
-              <span className={`w-2 h-2 rounded-full mr-2 ${
-                healthStatus?.status === 'ok' ? 'bg-green-400' : 'bg-red-400'
-              }`}></span>
-              {healthStatus?.message}
-            </div>
-          )}
-        </div>
 
         {/* User History State */}
         {session && (
