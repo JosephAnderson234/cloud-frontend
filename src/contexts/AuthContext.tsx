@@ -9,7 +9,7 @@ async function loginHandler(
     setSession: (value: Omit<Usuario, 'contraseña'> | null) => void,
 ) {
     const response = await login(loginRequest);
-    setSession(response.usuario); 
+    setSession(response);
 }
 
 async function signupHandler(

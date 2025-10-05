@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
-import type { Producto, Categoria, ProductoWithCategory, ProductoFormData, CategoriaFormData } from '@interfaces/productos';
-import * as productosService from '@services/productos';
+import type { ProductoResponseDTO, CategoriaDTO, ProductoFormData, CategoriaFormData, ProductoRequestDTO } from '@interfaces/productos';
+import productosService from '@services/productos';
 
 // Hook para gestión de productos
 export const useProductos = () => {
-    const [productos, setProductos] = useState<ProductoWithCategory[]>([]);
+    const [productos, setProductos] = useState<ProductoResponseDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -20,10 +20,17 @@ export const useProductos = () => {
         }
     };
 
-    const createProducto = async (data: ProductoFormData): Promise<Producto> => {
+    const createProducto = async (data: ProductoFormData): Promise<ProductoResponseDTO> => {
         setLoading(true);
         try {
-            const newProduct = await productosService.createProduct(data);
+            // Convert ProductoFormData to ProductoRequestDTO
+            const requestData: ProductoRequestDTO = {
+                nombre: data.nombre,
+                descripcion: data.descripcion,
+                precio: data.precio,
+                idCategoria: data.idCategoria
+            };
+            const newProduct = await productosService.createProduct(requestData);
             // Refetch to get updated data with category info
             await fetchProductos();
             return newProduct;
@@ -35,10 +42,17 @@ export const useProductos = () => {
         }
     };
 
-    const updateProducto = async (id: number, data: Partial<ProductoFormData>): Promise<Producto> => {
+    const updateProducto = async (id: number, data: ProductoFormData): Promise<ProductoResponseDTO> => {
         setLoading(true);
         try {
-            const updatedProduct = await productosService.updateProduct(id, data);
+            // Convert ProductoFormData to ProductoRequestDTO
+            const requestData: ProductoRequestDTO = {
+                nombre: data.nombre,
+                descripcion: data.descripcion,
+                precio: data.precio,
+                idCategoria: data.idCategoria
+            };
+            const updatedProduct = await productosService.updateProduct(id, requestData);
             // Refetch to get updated data with category info
             await fetchProductos();
             return updatedProduct;
@@ -54,7 +68,7 @@ export const useProductos = () => {
         setLoading(true);
         try {
             await productosService.deleteProduct(id);
-            setProductos(prev => prev.filter(producto => producto.id_producto !== id));
+            setProductos(prev => prev.filter(producto => producto.idProducto !== id));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error deleting product');
             throw err;
@@ -63,7 +77,7 @@ export const useProductos = () => {
         }
     };
 
-    const getProducto = async (id: number): Promise<Producto> => {
+    const getProducto = async (id: number): Promise<ProductoResponseDTO> => {
         setLoading(true);
         try {
             return await productosService.getProductById(id);
@@ -75,7 +89,7 @@ export const useProductos = () => {
         }
     };
 
-    const getProductosByCategoria = async (categoriaId: number): Promise<Producto[]> => {
+    const getProductosByCategoria = async (categoriaId: number): Promise<ProductoResponseDTO[]> => {
         setLoading(true);
         try {
             return await productosService.getProductsByCategory(categoriaId);
@@ -107,7 +121,7 @@ export const useProductos = () => {
 
 // Hook para gestión de categorías
 export const useCategorias = () => {
-    const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [categorias, setCategorias] = useState<CategoriaDTO[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -123,7 +137,7 @@ export const useCategorias = () => {
         }
     };
 
-    const createCategoria = async (data: CategoriaFormData): Promise<Categoria> => {
+    const createCategoria = async (data: CategoriaFormData): Promise<CategoriaDTO> => {
         setLoading(true);
         try {
             const newCategory = await productosService.createCategory(data);
@@ -137,12 +151,12 @@ export const useCategorias = () => {
         }
     };
 
-    const updateCategoria = async (id: number, data: Partial<CategoriaFormData>): Promise<Categoria> => {
+    const updateCategoria = async (id: number, data: CategoriaFormData): Promise<CategoriaDTO> => {
         setLoading(true);
         try {
             const updatedCategory = await productosService.updateCategory(id, data);
             setCategorias(prev => prev.map(categoria => 
-                categoria.id_categoria === id ? updatedCategory : categoria
+                categoria.idCategoria === id ? updatedCategory : categoria
             ));
             return updatedCategory;
         } catch (err) {
@@ -157,7 +171,7 @@ export const useCategorias = () => {
         setLoading(true);
         try {
             await productosService.deleteCategory(id);
-            setCategorias(prev => prev.filter(categoria => categoria.id_categoria !== id));
+            setCategorias(prev => prev.filter(categoria => categoria.idCategoria !== id));
         } catch (err) {
             setError(err instanceof Error ? err.message : 'Error deleting category');
             throw err;
@@ -166,7 +180,7 @@ export const useCategorias = () => {
         }
     };
 
-    const getCategoria = async (id: number): Promise<Categoria> => {
+    const getCategoria = async (id: number): Promise<CategoriaDTO> => {
         setLoading(true);
         try {
             return await productosService.getCategoryById(id);

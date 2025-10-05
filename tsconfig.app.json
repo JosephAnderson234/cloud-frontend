@@ -24,6 +24,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
     "baseUrl": "./",
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@router/*": ["src/router/*"],
       "@styles/*": ["src/styles/*"],

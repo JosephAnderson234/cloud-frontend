@@ -3,8 +3,8 @@ import type { CategoriaFormProps, CategoriaFormData } from '@interfaces/producto
 
 export default function CategoriaForm({ categoria, onSubmit, onCancel, loading }: CategoriaFormProps) {
     const [formData, setFormData] = useState<CategoriaFormData>({
-        nombre_categoria: '',
-        descripcion_categoria: ''
+        nombreCategoria: '',
+        descripcionCategoria: ''
     });
 
     const [errors, setErrors] = useState<{
@@ -15,8 +15,8 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel, loading }
     useEffect(() => {
         if (categoria) {
             setFormData({
-                nombre_categoria: categoria.nombre_categoria,
-                descripcion_categoria: categoria.descripcion_categoria
+                nombreCategoria: categoria.nombreCategoria,
+                descripcionCategoria: categoria.descripcionCategoria
             });
         }
     }, [categoria]);
@@ -24,15 +24,15 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel, loading }
     const validateForm = (): boolean => {
         const newErrors: typeof errors = {};
 
-        if (!formData.nombre_categoria.trim()) {
+        if (!formData.nombreCategoria.trim()) {
             newErrors.nombre_categoria = 'El nombre es requerido';
-        } else if (formData.nombre_categoria.length < 2) {
+        } else if (formData.nombreCategoria.length < 2) {
             newErrors.nombre_categoria = 'El nombre debe tener al menos 2 caracteres';
         }
 
-        if (!formData.descripcion_categoria.trim()) {
+        if (!formData.descripcionCategoria.trim()) {
             newErrors.descripcion_categoria = 'La descripción es requerida';
-        } else if (formData.descripcion_categoria.length < 10) {
+        } else if (formData.descripcionCategoria.length < 10) {
             newErrors.descripcion_categoria = 'La descripción debe tener al menos 10 caracteres';
         }
 
@@ -71,14 +71,14 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel, loading }
             <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Nombre */}
                 <div>
-                    <label htmlFor="nombre_categoria" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="nombreCategoria" className="block text-sm font-medium text-gray-700 mb-2">
                         Nombre de la Categoría <span className="text-red-500">*</span>
                     </label>
                     <input
                         type="text"
-                        id="nombre_categoria"
-                        name="nombre_categoria"
-                        value={formData.nombre_categoria}
+                        id="nombreCategoria"
+                        name="nombreCategoria"
+                        value={formData.nombreCategoria}
                         onChange={handleChange}
                         className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                             errors.nombre_categoria ? 'border-red-300 bg-red-50' : 'border-gray-300'
@@ -92,13 +92,13 @@ export default function CategoriaForm({ categoria, onSubmit, onCancel, loading }
 
                 {/* Descripción */}
                 <div>
-                    <label htmlFor="descripcion_categoria" className="block text-sm font-medium text-gray-700 mb-2">
+                    <label htmlFor="descripcionCategoria" className="block text-sm font-medium text-gray-700 mb-2">
                         Descripción <span className="text-red-500">*</span>
                     </label>
                     <textarea
-                        id="descripcion_categoria"
-                        name="descripcion_categoria"
-                        value={formData.descripcion_categoria}
+                        id="descripcionCategoria"
+                        name="descripcionCategoria"
+                        value={formData.descripcionCategoria}
                         onChange={handleChange}
                         rows={4}
                         className={`w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${

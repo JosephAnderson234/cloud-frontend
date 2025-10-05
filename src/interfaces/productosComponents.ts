@@ -1,42 +1,42 @@
-import type { Producto, Categoria, ProductoFormData, CategoriaFormData, ProductoWithCategory } from "./productos";
+import type { ProductoResponseDTO, CategoriaDTO, ProductoFormData, CategoriaFormData } from "./productos";
 
 // Export form data types for external use
 export type { ProductoFormData, CategoriaFormData } from "./productos";
 
 // Table Props
 export interface ProductoTableProps {
-    productos: ProductoWithCategory[];
-    onEdit: (producto: Producto) => void;
+    productos: ProductoResponseDTO[];
+    onEdit: (producto: ProductoResponseDTO) => void;
     onDelete: (id: number) => void;
     onViewCategory: (categoriaId: number) => void;
     loading: boolean;
 }
 
 export interface CategoriaTableProps {
-    categorias: Categoria[];
-    onEdit: (categoria: Categoria) => void;
+    categorias: CategoriaDTO[];
+    onEdit: (categoria: CategoriaDTO) => void;
     onDelete: (id: number) => void;
     loading: boolean;
 }
 
 // Form Props
 export interface ProductoFormProps {
-    producto?: Producto;
-    onSubmit: (data: ProductoFormData | Partial<ProductoFormData>) => void;
+    producto?: ProductoResponseDTO;
+    onSubmit: (data: ProductoFormData) => void;
     onCancel: () => void;
     loading: boolean;
 }
 
 export interface CategoriaFormProps {
-    categoria?: Categoria;
-    onSubmit: (data: CategoriaFormData | Partial<CategoriaFormData>) => void;
+    categoria?: CategoriaDTO;
+    onSubmit: (data: CategoriaFormData) => void;
     onCancel: () => void;
     loading: boolean;
 }
 
 // Selector Props
 export interface CategoriaSelectorProps {
-    categorias: Categoria[];
+    categorias: CategoriaDTO[];
     selectedCategoriaId: number | null;
     onCategoriaChange: (categoriaId: number) => void;
     loading: boolean;
@@ -53,7 +53,7 @@ export interface CategoriaModalProps {
 
 // Filter Props
 export interface ProductoFiltersProps {
-    categorias: Categoria[];
+    categorias: CategoriaDTO[];
     selectedCategoria: number | null;
     onCategoriaChange: (categoriaId: number | null) => void;
     searchTerm: string;

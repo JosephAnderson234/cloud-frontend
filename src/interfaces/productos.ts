@@ -1,26 +1,44 @@
-export interface Producto {
-    id_producto: number;
+// DTO interfaces to match backend
+
+// CategoriaDTO
+export interface CategoriaDTO {
+    idCategoria?: number;
+    nombreCategoria: string;
+    descripcionCategoria: string;
+}
+
+// ProductoRequestDTO (for creation/update)
+export interface ProductoRequestDTO {
     nombre: string;
     descripcion: string;
     precio: number;
-    categoria_id: number;
-    created_at?: string;
-    updated_at?: string;
+    idCategoria: number;
 }
 
-export interface Categoria {
-    id_categoria: number;
-    nombre_categoria: string;
-    descripcion_categoria: string;
-    created_at?: string;
-    updated_at?: string;
+// ProductoResponseDTO (for responses)
+export interface ProductoResponseDTO {
+    idProducto?: number;
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    categoria: CategoriaDTO;
 }
 
-// Extended interfaces with category details
-export interface ProductoWithCategory extends Producto {
-    categoria?: Categoria;
+
+// Form data types (for UI forms)
+export interface ProductoFormData {
+    nombre: string;
+    descripcion: string;
+    precio: number;
+    idCategoria: number;
 }
 
-// Form data types
-export type ProductoFormData = Omit<Producto, 'id_producto' | 'created_at' | 'updated_at'>;
-export type CategoriaFormData = Omit<Categoria, 'id_categoria' | 'created_at' | 'updated_at'>;
+export interface CategoriaFormData {
+    nombreCategoria: string;
+    descripcionCategoria: string;
+}
+
+// Legacy aliases for backward compatibility
+export type Categoria = CategoriaDTO;
+export type Producto = ProductoResponseDTO;
+export type ProductoWithCategory = ProductoResponseDTO;

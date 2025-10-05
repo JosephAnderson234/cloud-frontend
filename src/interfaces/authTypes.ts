@@ -17,3 +17,10 @@ export interface AuthResponse {
     message: string;
     usuario: Omit<Usuario, 'contraseña'>;
 }
+
+export interface AuthResponseOficial {
+    id_usuario: number;
+    nombre: string;
+    correo: string;
+    telefono: string;
+}

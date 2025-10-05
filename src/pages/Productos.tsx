@@ -1,9 +1,11 @@
 import { useState, useMemo } from 'react';
-import type { Producto, Categoria, ProductoWithCategory } from '@interfaces/productos';
+import type { ProductoResponseDTO, CategoriaDTO } from '@interfaces/productos';
 import type { ProductoFormData, CategoriaFormData } from '@interfaces/productosComponents';
-import { useProductosYCategorias } from '@hooks/useProductos';
-import Notification from '@components/Notification';
+import { useSimpleProductsPagination, useSimpleCategoriesPagination } from '@hooks/useSimplePagination';
+import { useNotification } from '@hooks/useNotification';
+import productosService from '@services/productos';
 import ConfirmModal from '@components/ConfirmModal';
+import SimplePagination from '@components/common/SimplePagination';
 import { 
     ProductoTable, 
     ProductoForm, 
@@ -17,52 +19,19 @@ import {
 type ViewMode = 'productos' | 'categorias';
 
 export default function Productos() {
-    const {
-        productos,
-        categorias,
-        loadingProductos,
-        loadingCategorias,
-        errorProductos,
-        errorCategorias,
-        createProducto,
-        updateProducto,
-        deleteProducto,
-        createCategoria,
-        updateCategoria,
-        deleteCategoria,
-        clearErrorProductos,
-        clearErrorCategorias,
-        totalProductos,
-        totalCategorias,
-        averagePrice
-    } = useProductosYCategorias();
+    const { showNotification } = useNotification();
+    
+    // Hooks de paginación simplificados
+    const products = useSimpleProductsPagination(10);
+    const categories = useSimpleCategoriesPagination(10);
 
     // Estados de UI
     const [viewMode, setViewMode] = useState<ViewMode>('productos');
     const [showProductoForm, setShowProductoForm] = useState(false);
     const [showCategoriaForm, setShowCategoriaForm] = useState(false);
-    const [editingProducto, setEditingProducto] = useState<Producto | undefined>();
-    const [editingCategoria, setEditingCategoria] = useState<Categoria | undefined>();
+    const [editingProducto, setEditingProducto] = useState<ProductoResponseDTO | undefined>();
+    const [editingCategoria, setEditingCategoria] = useState<CategoriaDTO | undefined>();
     
-    // Estados de modales
-    const [deleteProductoConfirm, setDeleteProductoConfirm] = useState<{ show: boolean; producto: ProductoWithCategory | null }>({
-        show: false,
-        producto: null
-    });
-    const [deleteCategoriaConfirm, setDeleteCategoriaConfirm] = useState<{ show: boolean; categoria: Categoria | null }>({
-        show: false,
-        categoria: null
-    });
-    const [categoriaModal, setCategoriaModal] = useState<{ 
-        show: boolean; 
-        categoriaId: number; 
-        categoriaNombre: string; 
-    }>({
-        show: false,
-        categoriaId: 0,
-        categoriaNombre: ''
-    });
-
     // Estados de filtros
     const [filters, setFilters] = useState({
         searchTerm: '',
@@ -70,365 +39,360 @@ export default function Productos() {
         priceRange: { min: 0, max: 0 }
     });
 
-    // Estados de notificaciones
-    const [notification, setNotification] = useState<{
+    // Estados de modales de confirmación
+    const [deleteProductoConfirm, setDeleteProductoConfirm] = useState<{
         show: boolean;
-        message: string;
-        type: 'success' | 'error' | 'info';
-    }>({ show: false, message: '', type: 'info' });
+        producto: ProductoResponseDTO | null;
+    }>({ show: false, producto: null });
+
+    const [deleteCategoriaConfirm, setDeleteCategoriaConfirm] = useState<{
+        show: boolean;
+        categoria: CategoriaDTO | null;
+    }>({ show: false, categoria: null });
+
+    const [categoriaModal, setCategoriaModal] = useState<{
+        show: boolean;
+        categoriaId: number;
+        categoriaNombre: string;
+    }>({ show: false, categoriaId: 0, categoriaNombre: '' });
 
     // Productos filtrados
     const filteredProductos = useMemo(() => {
-        return productos.filter(producto => {
-            const matchesSearch = producto.nombre.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
-                                producto.descripcion.toLowerCase().includes(filters.searchTerm.toLowerCase());
-            const matchesCategoria = !filters.selectedCategoria || producto.categoria_id === filters.selectedCategoria;
+        if (!filters.searchTerm && !filters.selectedCategoria && !filters.priceRange.min && !filters.priceRange.max) {
+            return products.products;
+        }
+
+        return products.products.filter((producto) => {
+            const matchesSearch = !filters.searchTerm || 
+                producto.nombre.toLowerCase().includes(filters.searchTerm.toLowerCase()) ||
+                producto.descripcion.toLowerCase().includes(filters.searchTerm.toLowerCase());
+            
+            const matchesCategoria = !filters.selectedCategoria || 
+                producto.categoria.idCategoria === filters.selectedCategoria;
+            
             const matchesPrice = (!filters.priceRange.min || producto.precio >= filters.priceRange.min) &&
                                (!filters.priceRange.max || producto.precio <= filters.priceRange.max);
             
             return matchesSearch && matchesCategoria && matchesPrice;
         });
-    }, [productos, filters]);
+    }, [products.products, filters]);
 
-    const showNotification = (message: string, type: 'success' | 'error' | 'info') => {
-        setNotification({ show: true, message, type });
-    };
-
-    const hideNotification = () => {
-        setNotification(prev => ({ ...prev, show: false }));
-    };
+    // Stats calculadas
+    const averagePrice = products.products.length > 0
+        ? products.products.reduce((sum, p) => sum + p.precio, 0) / products.products.length
+        : 0;
 
     // Handlers para productos
-    const handleCreateProducto = async (data: ProductoFormData | Partial<ProductoFormData>) => {
+    const handleCreateProducto = async (data: ProductoFormData) => {
         try {
-            await createProducto(data as ProductoFormData);
+            await productosService.createProduct({
+                nombre: data.nombre,
+                descripcion: data.descripcion,
+                precio: data.precio,
+                idCategoria: data.idCategoria
+            });
+            await products.refresh();
             setShowProductoForm(false);
-            showNotification('Producto creado exitosamente', 'success');
+            showNotification({ message: 'Producto creado exitosamente', type: 'success' });
         } catch (error) {
             console.error('Error creating product:', error);
-            showNotification('Error al crear el producto', 'error');
+            showNotification({ message: 'Error al crear el producto', type: 'error' });
         }
     };
 
-    const handleUpdateProducto = async (data: ProductoFormData | Partial<ProductoFormData>) => {
-        if (editingProducto) {
-            try {
-                await updateProducto(editingProducto.id_producto, data);
-                setEditingProducto(undefined);
-                setShowProductoForm(false);
-                showNotification('Producto actualizado exitosamente', 'success');
-            } catch (error) {
-                console.error('Error updating product:', error);
-                showNotification('Error al actualizar el producto', 'error');
-            }
+    const handleUpdateProducto = async (data: ProductoFormData) => {
+        if (!editingProducto?.idProducto) return;
+        
+        try {
+            await productosService.updateProduct(editingProducto.idProducto, {
+                nombre: data.nombre,
+                descripcion: data.descripcion,
+                precio: data.precio,
+                idCategoria: data.idCategoria
+            });
+            await products.refresh();
+            setEditingProducto(undefined);
+            setShowProductoForm(false);
+            showNotification({ message: 'Producto actualizado exitosamente', type: 'success' });
+        } catch (error) {
+            console.error('Error updating product:', error);
+            showNotification({ message: 'Error al actualizar el producto', type: 'error' });
         }
     };
 
     const handleDeleteProducto = async () => {
-        if (deleteProductoConfirm.producto) {
-            try {
-                await deleteProducto(deleteProductoConfirm.producto.id_producto);
-                setDeleteProductoConfirm({ show: false, producto: null });
-                showNotification('Producto eliminado exitosamente', 'success');
-            } catch (error) {
-                console.error('Error deleting product:', error);
-                showNotification('Error al eliminar el producto', 'error');
-            }
+        if (!deleteProductoConfirm.producto?.idProducto) return;
+        
+        try {
+            await productosService.deleteProduct(deleteProductoConfirm.producto.idProducto);
+            await products.refresh();
+            setDeleteProductoConfirm({ show: false, producto: null });
+            showNotification({ message: 'Producto eliminado exitosamente', type: 'success' });
+        } catch (error) {
+            console.error('Error deleting product:', error);
+            showNotification({ message: 'Error al eliminar el producto', type: 'error' });
         }
     };
 
     // Handlers para categorías
-    const handleCreateCategoria = async (data: CategoriaFormData | Partial<CategoriaFormData>) => {
+    const handleCreateCategoria = async (data: CategoriaFormData) => {
         try {
-            await createCategoria(data as CategoriaFormData);
+            await productosService.createCategory(data);
+            await categories.refresh();
             setShowCategoriaForm(false);
-            showNotification('Categoría creada exitosamente', 'success');
+            showNotification({ message: 'Categoría creada exitosamente', type: 'success' });
         } catch (error) {
             console.error('Error creating category:', error);
-            showNotification('Error al crear la categoría', 'error');
+            showNotification({ message: 'Error al crear la categoría', type: 'error' });
         }
     };
 
-    const handleUpdateCategoria = async (data: CategoriaFormData | Partial<CategoriaFormData>) => {
-        if (editingCategoria) {
-            try {
-                await updateCategoria(editingCategoria.id_categoria, data);
-                setEditingCategoria(undefined);
-                setShowCategoriaForm(false);
-                showNotification('Categoría actualizada exitosamente', 'success');
-            } catch (error) {
-                console.error('Error updating category:', error);
-                showNotification('Error al actualizar la categoría', 'error');
-            }
+    const handleUpdateCategoria = async (data: CategoriaFormData) => {
+        if (!editingCategoria?.idCategoria) return;
+        
+        try {
+            await productosService.updateCategory(editingCategoria.idCategoria, data);
+            await categories.refresh();
+            setEditingCategoria(undefined);
+            setShowCategoriaForm(false);
+            showNotification({ message: 'Categoría actualizada exitosamente', type: 'success' });
+        } catch (error) {
+            console.error('Error updating category:', error);
+            showNotification({ message: 'Error al actualizar la categoría', type: 'error' });
         }
     };
 
     const handleDeleteCategoria = async () => {
-        if (deleteCategoriaConfirm.categoria) {
-            try {
-                await deleteCategoria(deleteCategoriaConfirm.categoria.id_categoria);
-                setDeleteCategoriaConfirm({ show: false, categoria: null });
-                showNotification('Categoría eliminada exitosamente', 'success');
-            } catch (error) {
-                console.error('Error deleting category:', error);
-                showNotification('Error al eliminar la categoría', 'error');
-            }
+        if (!deleteCategoriaConfirm.categoria?.idCategoria) return;
+        
+        try {
+            await productosService.deleteCategory(deleteCategoriaConfirm.categoria.idCategoria);
+            await categories.refresh();
+            setDeleteCategoriaConfirm({ show: false, categoria: null });
+            showNotification({ message: 'Categoría eliminada exitosamente', type: 'success' });
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            showNotification({ message: 'Error al eliminar la categoría', type: 'error' });
         }
     };
 
-    // Handlers de UI
-    const startEditProducto = (producto: Producto) => {
-        setEditingProducto(producto);
-        setShowProductoForm(true);
-    };
-
-    const startDeleteProducto = (productoId: number) => {
-        const producto = productos.find(p => p.id_producto === productoId);
-        if (producto) {
-            setDeleteProductoConfirm({ show: true, producto });
-        }
-    };
-
-    const startEditCategoria = (categoria: Categoria) => {
-        setEditingCategoria(categoria);
-        setShowCategoriaForm(true);
-    };
-
-    const startDeleteCategoria = (categoriaId: number) => {
-        const categoria = categorias.find(c => c.id_categoria === categoriaId);
+    const handleViewCategoria = (categoriaId: number) => {
+        const categoria = categories.categories.find(c => c.idCategoria === categoriaId);
         if (categoria) {
-            setDeleteCategoriaConfirm({ show: true, categoria });
-        }
-    };
-
-    const viewCategoriaDetails = (categoriaId: number) => {
-        const categoria = categorias.find(c => c.id_categoria === categoriaId);
-        if (categoria) {
-            setCategoriaModal({ 
-                show: true, 
-                categoriaId, 
-                categoriaNombre: categoria.nombre_categoria 
+            setCategoriaModal({
+                show: true,
+                categoriaId,
+                categoriaNombre: categoria.nombreCategoria
             });
         }
     };
 
-    const cancelForms = () => {
-        setShowProductoForm(false);
-        setShowCategoriaForm(false);
-        setEditingProducto(undefined);
-        setEditingCategoria(undefined);
-    };
-
-    const resetFilters = () => {
-        setFilters({
-            searchTerm: '',
-            selectedCategoria: null,
-            priceRange: { min: 0, max: 0 }
-        });
-    };
-
-    // Limpiar errores
-    const handleErrorClear = () => {
-        clearErrorProductos();
-        clearErrorCategorias();
-        hideNotification();
-    };
-
-    const currentError = errorProductos || errorCategorias;
-    const currentLoading = loadingProductos || loadingCategorias;
-
     return (
-        <div className="min-h-screen bg-gray-50 py-8">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="sm:flex sm:items-center sm:justify-between">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900">Gestión de Productos</h1>
-                            <p className="mt-2 text-gray-600">
-                                Administra tu catálogo de productos y categorías.
-                            </p>
-                        </div>
-                        
-                        {/* View Mode Tabs */}
-                        <div className="mt-4 sm:mt-0">
-                            <div className="flex rounded-lg border border-gray-300 bg-white">
-                                <button
-                                    onClick={() => setViewMode('productos')}
-                                    className={`px-4 py-2 text-sm font-medium rounded-l-lg transition-colors ${
-                                        viewMode === 'productos'
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    Productos
-                                </button>
-                                <button
-                                    onClick={() => setViewMode('categorias')}
-                                    className={`px-4 py-2 text-sm font-medium rounded-r-lg transition-colors ${
-                                        viewMode === 'categorias'
-                                            ? 'bg-blue-600 text-white'
-                                            : 'text-gray-700 hover:bg-gray-50'
-                                    }`}
-                                >
-                                    Categorías
-                                </button>
-                            </div>
-                        </div>
+        <div className="container mx-auto px-4 py-6 space-y-6">
+            {/* Header */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900">
+                            Gestión de {viewMode === 'productos' ? 'Productos' : 'Categorías'}
+                        </h1>
+                        <p className="mt-1 text-sm text-gray-600">
+                            {viewMode === 'productos' 
+                                ? `${products.totalElements} productos registrados`
+                                : `${categories.totalElements} categorías registradas`
+                            }
+                        </p>
                     </div>
-                </div>
-
-                {/* Stats */}
-                <div className="mb-8">
-                    <ProductoStats
-                        totalProductos={totalProductos}
-                        totalCategorias={totalCategorias}
-                        averagePrice={averagePrice}
-                        loading={currentLoading}
-                    />
-                </div>
-
-                {/* Error General */}
-                {currentError && (
-                    <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex justify-between items-center">
-                            <p className="text-sm text-red-600">{currentError}</p>
+                    
+                    <div className="mt-4 sm:mt-0 flex space-x-4">
+                        <div className="flex rounded-lg border border-gray-200 p-1">
                             <button
-                                onClick={handleErrorClear}
-                                className="text-red-400 hover:text-red-600"
+                                onClick={() => setViewMode('productos')}
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    viewMode === 'productos'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'text-gray-700 hover:text-gray-900'
+                                }`}
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
+                                Productos
+                            </button>
+                            <button
+                                onClick={() => setViewMode('categorias')}
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                                    viewMode === 'categorias'
+                                        ? 'bg-blue-600 text-white'
+                                        : 'text-gray-700 hover:text-gray-900'
+                                }`}
+                            >
+                                Categorías
                             </button>
                         </div>
+                        
+                        <button
+                            onClick={() => {
+                                if (viewMode === 'productos') {
+                                    setEditingProducto(undefined);
+                                    setShowProductoForm(true);
+                                } else {
+                                    setEditingCategoria(undefined);
+                                    setShowCategoriaForm(true);
+                                }
+                            }}
+                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                        >
+                            + Agregar {viewMode === 'productos' ? 'Producto' : 'Categoría'}
+                        </button>
                     </div>
-                )}
-
-                <div className="space-y-6">
-                    {viewMode === 'productos' ? (
-                        <>
-                            {/* Filtros de Productos */}
-                            {!showProductoForm && (
-                                <ProductoFilters
-                                    categorias={categorias}
-                                    selectedCategoria={filters.selectedCategoria}
-                                    onCategoriaChange={(categoriaId: number | null) => setFilters(prev => ({ ...prev, selectedCategoria: categoriaId }))}
-                                    searchTerm={filters.searchTerm}
-                                    onSearchChange={(term: string) => setFilters(prev => ({ ...prev, searchTerm: term }))}
-                                    priceRange={filters.priceRange}
-                                    onPriceRangeChange={(range: { min: number; max: number }) => setFilters(prev => ({ ...prev, priceRange: range }))}
-                                    onReset={resetFilters}
-                                />
-                            )}
-
-                            {/* Action Buttons */}
-                            {!showProductoForm && (
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={() => setShowProductoForm(true)}
-                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-                                    >
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Nuevo Producto
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Formulario o Tabla de Productos */}
-                            {showProductoForm ? (
-                                <ProductoForm
-                                    producto={editingProducto}
-                                    onSubmit={editingProducto ? handleUpdateProducto : handleCreateProducto}
-                                    onCancel={cancelForms}
-                                    loading={loadingProductos}
-                                />
-                            ) : (
-                                <ProductoTable
-                                    productos={filteredProductos}
-                                    onEdit={startEditProducto}
-                                    onDelete={startDeleteProducto}
-                                    onViewCategory={viewCategoriaDetails}
-                                    loading={loadingProductos}
-                                />
-                            )}
-                        </>
-                    ) : (
-                        <>
-                            {/* Action Buttons para Categorías */}
-                            {!showCategoriaForm && (
-                                <div className="flex justify-end">
-                                    <button
-                                        onClick={() => setShowCategoriaForm(true)}
-                                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
-                                    >
-                                        <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                        </svg>
-                                        Nueva Categoría
-                                    </button>
-                                </div>
-                            )}
-
-                            {/* Formulario o Tabla de Categorías */}
-                            {showCategoriaForm ? (
-                                <CategoriaForm
-                                    categoria={editingCategoria}
-                                    onSubmit={editingCategoria ? handleUpdateCategoria : handleCreateCategoria}
-                                    onCancel={cancelForms}
-                                    loading={loadingCategorias}
-                                />
-                            ) : (
-                                <CategoriaTable
-                                    categorias={categorias}
-                                    onEdit={startEditCategoria}
-                                    onDelete={startDeleteCategoria}
-                                    loading={loadingCategorias}
-                                />
-                            )}
-                        </>
-                    )}
                 </div>
             </div>
 
+            {/* Content */}
+            {viewMode === 'productos' ? (
+                <div className="space-y-6">
+                    {/* Stats */}
+                    <ProductoStats
+                        totalProductos={products.totalElements}
+                        totalCategorias={categories.totalElements}
+                        averagePrice={averagePrice}
+                        loading={products.loading}
+                    />
+
+                    {/* Filtros */}
+                    <ProductoFilters
+                        categorias={categories.categories}
+                        selectedCategoria={filters.selectedCategoria}
+                        onCategoriaChange={(categoriaId) => setFilters(prev => ({ ...prev, selectedCategoria: categoriaId }))}
+                        searchTerm={filters.searchTerm}
+                        onSearchChange={(term) => setFilters(prev => ({ ...prev, searchTerm: term }))}
+                        priceRange={filters.priceRange}
+                        onPriceRangeChange={(range) => setFilters(prev => ({ ...prev, priceRange: range }))}
+                        onReset={() => setFilters({ searchTerm: '', selectedCategoria: null, priceRange: { min: 0, max: 0 } })}
+                    />
+
+                    {/* Tabla de productos */}
+                    <div className="bg-white rounded-xl shadow-sm">
+                        <div className="p-6">
+                            <ProductoTable
+                                productos={filteredProductos}
+                                onEdit={(producto) => {
+                                    setEditingProducto(producto);
+                                    setShowProductoForm(true);
+                                }}
+                                onDelete={(id) => {
+                                    const producto = products.products.find(p => p.idProducto === id);
+                                    if (producto) {
+                                        setDeleteProductoConfirm({ show: true, producto });
+                                    }
+                                }}
+                                onViewCategory={handleViewCategoria}
+                                loading={products.loading}
+                            />
+                            
+                            {/* Paginación */}
+                            {products.totalElements > 0 && (
+                                <SimplePagination
+                                    currentPage={products.currentPage}
+                                    totalPages={products.totalPages}
+                                    totalElements={products.totalElements}
+                                    startItem={products.startItem}
+                                    endItem={products.endItem}
+                                    onPageChange={products.goToPage}
+                                    loading={products.loading}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    {/* Tabla de categorías */}
+                    <div className="bg-white rounded-xl shadow-sm">
+                        <div className="p-6">
+                            <CategoriaTable
+                                categorias={categories.categories}
+                                onEdit={(categoria) => {
+                                    setEditingCategoria(categoria);
+                                    setShowCategoriaForm(true);
+                                }}
+                                onDelete={(id) => {
+                                    const categoria = categories.categories.find(c => c.idCategoria === id);
+                                    if (categoria) {
+                                        setDeleteCategoriaConfirm({ show: true, categoria });
+                                    }
+                                }}
+                                loading={categories.loading}
+                            />
+                            
+                            {/* Paginación */}
+                            {categories.totalElements > 0 && (
+                                <SimplePagination
+                                    currentPage={categories.currentPage}
+                                    totalPages={categories.totalPages}
+                                    totalElements={categories.totalElements}
+                                    startItem={categories.startItem}
+                                    endItem={categories.endItem}
+                                    onPageChange={categories.goToPage}
+                                    loading={categories.loading}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Modales */}
+            {showProductoForm && (
+                <ProductoForm
+                    producto={editingProducto}
+                    onSubmit={editingProducto ? handleUpdateProducto : handleCreateProducto}
+                    onCancel={() => {
+                        setShowProductoForm(false);
+                        setEditingProducto(undefined);
+                    }}
+                    loading={products.loading}
+                />
+            )}
+
+            {showCategoriaForm && (
+                <CategoriaForm
+                    categoria={editingCategoria}
+                    onSubmit={editingCategoria ? handleUpdateCategoria : handleCreateCategoria}
+                    onCancel={() => {
+                        setShowCategoriaForm(false);
+                        setEditingCategoria(undefined);
+                    }}
+                    loading={categories.loading}
+                />
+            )}
+
+            {categoriaModal.show && (
+                <CategoriaModal
+                    isOpen={categoriaModal.show}
+                    categoriaId={categoriaModal.categoriaId}
+                    categoriaNombre={categoriaModal.categoriaNombre}
+                    onClose={() => setCategoriaModal({ show: false, categoriaId: 0, categoriaNombre: '' })}
+                />
+            )}
+
+            {/* Confirmaciones */}
             <ConfirmModal
                 isOpen={deleteProductoConfirm.show}
-                onClose={() => setDeleteProductoConfirm({ show: false, producto: null })}
                 onConfirm={handleDeleteProducto}
+                onClose={() => setDeleteProductoConfirm({ show: false, producto: null })}
                 title="Eliminar Producto"
-                message={`¿Estás seguro de que deseas eliminar el producto "${deleteProductoConfirm.producto?.nombre}"? Esta acción no se puede deshacer.`}
-                loading={loadingProductos}
-                confirmText="Eliminar"
+                message={`¿Estás seguro de que deseas eliminar el producto "${deleteProductoConfirm.producto?.nombre}"?`}
+                loading={products.loading}
                 variant="danger"
             />
 
             <ConfirmModal
                 isOpen={deleteCategoriaConfirm.show}
-                onClose={() => setDeleteCategoriaConfirm({ show: false, categoria: null })}
                 onConfirm={handleDeleteCategoria}
+                onClose={() => setDeleteCategoriaConfirm({ show: false, categoria: null })}
                 title="Eliminar Categoría"
-                message={`¿Estás seguro de que deseas eliminar la categoría "${deleteCategoriaConfirm.categoria?.nombre_categoria}"? Esta acción puede afectar a los productos asociados.`}
-                loading={loadingCategorias}
-                confirmText="Eliminar"
-                variant="warning"
-            />
-
-            <CategoriaModal
-                isOpen={categoriaModal.show}
-                onClose={() => setCategoriaModal({ show: false, categoriaId: 0, categoriaNombre: '' })}
-                categoriaId={categoriaModal.categoriaId}
-                categoriaNombre={categoriaModal.categoriaNombre}
-            />
-
-            {/* Notificaciones */}
-            <Notification
-                message={notification.message}
-                visible={notification.show}
-                onClose={hideNotification}
-                status={notification.type}
+                message={`¿Estás seguro de que deseas eliminar la categoría "${deleteCategoriaConfirm.categoria?.nombreCategoria}"?`}
+                loading={categories.loading}
+                variant="danger"
             />
         </div>
     );

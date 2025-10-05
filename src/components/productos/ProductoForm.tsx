@@ -10,7 +10,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel, loading }: 
         nombre: '',
         descripcion: '',
         precio: 0,
-        categoria_id: 0
+        idCategoria: 0
     });
 
     const [errors, setErrors] = useState<{
@@ -26,7 +26,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel, loading }: 
                 nombre: producto.nombre,
                 descripcion: producto.descripcion,
                 precio: producto.precio,
-                categoria_id: producto.categoria_id
+                idCategoria: producto.categoria.idCategoria || 0
             });
         }
     }, [producto]);
@@ -50,7 +50,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel, loading }: 
             newErrors.precio = 'El precio debe ser mayor a 0';
         }
 
-        if (!formData.categoria_id || formData.categoria_id === 0) {
+        if (!formData.idCategoria || formData.idCategoria === 0) {
             newErrors.categoria_id = 'Debe seleccionar una categoría';
         }
 
@@ -79,7 +79,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel, loading }: 
     };
 
     const handleCategoriaChange = (categoriaId: number) => {
-        setFormData((prev: ProductoFormData) => ({ ...prev, categoria_id: categoriaId }));
+        setFormData((prev: ProductoFormData) => ({ ...prev, idCategoria: categoriaId }));
         if (errors.categoria_id) {
             setErrors(prev => ({ ...prev, categoria_id: undefined }));
         }
@@ -152,7 +152,7 @@ export default function ProductoForm({ producto, onSubmit, onCancel, loading }: 
                 <div>
                     <CategoriaSelector
                         categorias={categorias}
-                        selectedCategoriaId={formData.categoria_id}
+                        selectedCategoriaId={formData.idCategoria}
                         onCategoriaChange={handleCategoriaChange}
                         loading={categoriasLoading}
                         required={true}

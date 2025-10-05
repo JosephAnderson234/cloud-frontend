@@ -51,27 +51,27 @@ export default function CategoriaTable({ categorias, onEdit, onDelete, loading }
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {categorias.map((categoria) => (
-                            <tr key={categoria.id_categoria} className="hover:bg-gray-50 transition-colors">
+                            <tr key={categoria.idCategoria} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10">
                                             <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center text-white font-medium">
-                                                {categoria.nombre_categoria.charAt(0).toUpperCase()}
+                                                {categoria.nombreCategoria.charAt(0).toUpperCase()}
                                             </div>
                                         </div>
                                         <div className="ml-4">
                                             <div className="text-sm font-medium text-gray-900">
-                                                {categoria.nombre_categoria}
+                                                {categoria.nombreCategoria}
                                             </div>
                                             <div className="text-sm text-gray-500">
-                                                ID: {categoria.id_categoria}
+                                                ID: {categoria.idCategoria}
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="text-sm text-gray-900 max-w-xs">
-                                        {categoria.descripcion_categoria}
+                                        {categoria.descripcionCategoria}
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -86,7 +86,7 @@ export default function CategoriaTable({ categorias, onEdit, onDelete, loading }
                                             Editar
                                         </button>
                                         <button
-                                            onClick={() => onDelete(categoria.id_categoria)}
+                                            onClick={() => onDelete(categoria.idCategoria!)}
                                             className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                                         >
                                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -64,7 +64,7 @@ export default function ProductoTable({ productos, onEdit, onDelete, onViewCateg
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {productos.map((producto) => (
-                            <tr key={producto.id_producto} className="hover:bg-gray-50 transition-colors">
+                            <tr key={producto.idProducto} className="hover:bg-gray-50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10">
@@ -77,17 +77,17 @@ export default function ProductoTable({ productos, onEdit, onDelete, onViewCateg
                                                 {producto.nombre}
                                             </div>
                                             <div className="text-sm text-gray-500">
-                                                ID: {producto.id_producto}
+                                                ID: {producto.idProducto}
                                             </div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <button
-                                        onClick={() => onViewCategory(producto.categoria_id)}
+                                        onClick={() => onViewCategory(producto.categoria.idCategoria!)}
                                         className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
                                     >
-                                        {producto.categoria?.nombre_categoria || 'Sin categoría'}
+                                        {producto.categoria?.nombreCategoria || 'Sin categoría'}
                                     </button>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
@@ -112,7 +112,7 @@ export default function ProductoTable({ productos, onEdit, onDelete, onViewCateg
                                             Editar
                                         </button>
                                         <button
-                                            onClick={() => onDelete(producto.id_producto)}
+                                            onClick={() => onDelete(producto.idProducto!)}
                                             className="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                                         >
                                             <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">

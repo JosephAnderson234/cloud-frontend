@@ -21,8 +21,8 @@ export default function CategoriaSelector({
             >
                 <option value="">Selecciona una categoría</option>
                 {categorias.map((categoria) => (
-                    <option key={categoria.id_categoria} value={categoria.id_categoria}>
-                        {categoria.nombre_categoria}
+                    <option key={categoria.idCategoria} value={categoria.idCategoria}>
+                        {categoria.nombreCategoria}
                     </option>
                 ))}
             </select>
