@@ -27,7 +27,7 @@ export default function Login() {
             await login(credentials);
             showNotification('¡Bienvenido! Sesión iniciada correctamente', 'success');
         } catch (error) {
-            showNotification(error instanceof Error ? error.message : 'Error al iniciar sesión', 'error');
+            showNotification(error instanceof Error ? error.message : 'Credenciales inválidas', 'error');
         }
     };
 
