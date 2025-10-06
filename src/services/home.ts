@@ -6,7 +6,7 @@ import type {
   TotalSpentParams 
 } from "@interfaces/analytics";
 
-const API_URL = import.meta.env.VITE_API_URL + ":8005"; // Assuming analytics API runs on port 8002
+const API_URL = import.meta.env.VITE_API_URL + "/ms5"; // Assuming analytics API runs on port 8002
 
 // Health check endpoint
 export const getHealthStatus = async (): Promise<HealthStatus> => {

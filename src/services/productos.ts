@@ -7,7 +7,7 @@ import type {
 import type { PaginatedResponse } from '@interfaces/Pagination';
 
 // Base URL for products microservice (port 8082 as specified)
-const API_URL = import.meta.env.VITE_API_URL + ":8002";
+const API_URL = import.meta.env.VITE_API_URL + "/ms2";
 
 // ===== PRODUCTOS =====
 

@@ -1,6 +1,6 @@
 import type { Usuario, Direccion, DireccionResponse } from "@interfaces/usuarios";
 
-const API_URL = import.meta.env.VITE_API_URL + ":8001";
+const API_URL = import.meta.env.VITE_API_URL + "/ms2";
 
 
 export const getUserById = async (id: number) => {

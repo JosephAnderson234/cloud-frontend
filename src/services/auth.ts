@@ -1,6 +1,6 @@
 import type { LoginRequest, RegisterRequest, AuthResponse, AuthResponseOficial } from "@interfaces/authTypes";
 
-const API_URL = import.meta.env.VITE_API_URL + ":8001";
+const API_URL = import.meta.env.VITE_API_URL + "/ms1";
 //const API_URL = "http://localhost:5000";
 
 export const login = async (credentials: LoginRequest) => {

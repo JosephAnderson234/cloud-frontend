@@ -11,7 +11,7 @@ import type {
     FiltrosHistorial
 } from "@interfaces/pedidos";
 
-const API_URL = import.meta.env.VITE_API_URL + ":8003";
+const API_URL = import.meta.env.VITE_API_URL + "/ms3";
 
 // ===== PEDIDOS =====
 

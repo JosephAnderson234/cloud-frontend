@@ -5,7 +5,7 @@ import type {
   OrderDetailsResponse 
 } from "@interfaces/delivery";
 
-const API_URL = import.meta.env.VITE_API_URL+ ":8004"; // Base API URL
+const API_URL = import.meta.env.VITE_API_URL+ "/ms4"; // Base API URL
 
 // Cotización de carrito
 export const getCartQuote = async (request: CartQuoteRequest): Promise<CartQuoteResponse> => {
