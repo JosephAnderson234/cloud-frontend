@@ -42,10 +42,6 @@ El sistema backend está compuesto por 5 microservicios desplegados mediante Doc
 - Seguimiento de estados
 - Historial de pedidos
 
-### 4. 🚚 **Orquestador Delivery** (Nueva Funcionalidad)
-- **Cotización de Carrito**: Calcula precios, impuestos y totales en tiempo real
-- **Detalles Enriquecidos**: Consulta información completa de pedidos con datos de múltiples microservicios
-- **Validación Cruzada**: Verifica cambios de precios y detecta inconsistencias
 
 ### 5. 📊 Analytics
 - Estadísticas de usuarios
@@ -292,7 +288,7 @@ Este proyecto está bajo la licencia MIT - ver el archivo [LICENSE](LICENSE) par
 - **MS1-Usuarios**: [PauloMiraBarr](https://github.com/PauloMiraBarr/ms1-usuarios)
 - **MS2-Productos**: [EV081](https://github.com/EV081/ms2_products.git)
 - **MS3-Pedidos**: [jcarlos-t](https://github.com/jcarlos-t/Pedidos-MS3.git)
-- **MS4-Orquestador**: [J-D-Rosales](https://github.com/J-D-Rosales/Microservicios_orquestador.git)
+- **MS4-Gestor Delivery**: [J-D-Rosales](https://github.com/J-D-Rosales/Microservicios_orquestador.git)
 - **MS5-Analytics**: [EV081](https://github.com/EV081/ms5.git)
 - **Base de Datos**: [jcarlos-t](https://github.com/jcarlos-t/PCloud-BD.git)
 

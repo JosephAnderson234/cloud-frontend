@@ -50,7 +50,7 @@ const DeliveryStats = ({ cartQuote, orderDetails }: DeliveryStatsProps) => {
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
       <h3 className="text-lg font-semibold mb-4 text-gray-800">
-        Estadísticas del Orquestador
+        Estadísticas de cotización y pedido
       </h3>
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
