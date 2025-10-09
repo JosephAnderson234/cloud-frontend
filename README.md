@@ -102,20 +102,7 @@ cd cloud-frontend
 npm install
 ```
 
-3. **Configurar variables de entorno**
-```bash
-cp .env.example .env
-```
-
-Editar `.env` con las URLs de los microservicios:
-```env
-VITE_API_URL=http://localhost
-VITE_MS1_URL=http://localhost:8001
-VITE_MS2_URL=http://localhost:8002
-VITE_MS3_URL=http://localhost:8003
-VITE_MS4_URL=http://localhost:8004
-VITE_MS5_URL=http://localhost:8005
-```
+//settear variables de entorno  (link de aws amplify en formato VITE_API_URL)
 
 4. **Ejecutar en desarrollo**
 ```bash
@@ -127,55 +114,6 @@ npm run dev
 npm run build
 ```
 
-## 🆕 Página de Orquestador Delivery
-
-### Descripción
-La nueva página de **Delivery** implementa dos funcionalidades principales del MS4-Orquestador:
-
-#### 🛒 Cotización de Carrito
-**Endpoint**: `POST /orq/cart/price-quote`
-
-**Funcionalidad**:
-- Valida usuario en MS1
-- Verifica dirección (opcional)
-- Consulta precios actuales en MS2
-- Calcula subtotal, impuestos (TAX_RATE) y total
-- Detecta cambios de precios
-
-**Flujo**:
-1. Usuario completa formulario con productos y cantidades
-2. Sistema valida datos contra MS1 y MS2
-3. Muestra cotización con alertas de cambios de precio
-
-#### 📋 Detalles Enriquecidos de Pedido
-**Endpoint**: `GET /orq/orders/{order_id}/details?id_usuario=X`
-
-**Funcionalidad**:
-- Obtiene pedido de MS3
-- Enriquece con datos actuales de MS2
-- Agrega resumen de usuario de MS1
-- Compara precios históricos vs actuales
-- Detecta inconsistencias y genera alertas
-
-**Flujo**:
-1. Usuario ingresa ID de pedido
-2. Sistema orquesta consultas a MS1, MS2 y MS3
-3. Presenta vista consolidada con alertas de cambios
-
-### Componentes Implementados
-
-```typescript
-// Formularios
-- CartQuoteForm.tsx      // Cotización de carrito
-- OrderDetailsForm.tsx   // Consulta de detalles
-
-// Resultados
-- QuoteResults.tsx       // Muestra cotización
-- OrderDetailsResults.tsx // Detalles enriquecidos
-
-// Estadísticas
-- DeliveryStats.tsx      // Métricas de orquestación
-```
 
 ### Características de UX
 - **Navegación por tabs** entre funcionalidades
@@ -253,22 +191,6 @@ graph LR
 | `/products` | Productos | Catálogo de productos |
 | `/orders` | Pedidos | Gestión de pedidos |
 | `/delivery` | **Delivery** | 🆕 Orquestador Delivery |
-
-## 🚀 Despliegue
-
-### AWS CloudFormation
-El proyecto incluye la infraestructura como código para despliegue en AWS:
-
-- **ALB** con listeners 8001-8005
-- **EC2** instances con Auto Scaling
-- **Security Groups** configurados
-- **Target Groups** para cada microservicio
-
-### Docker Compose Local
-Para desarrollo local, el backend se ejecuta con:
-```bash
-docker-compose up -d
-```
 
 ## 🤝 Contribuir
 
